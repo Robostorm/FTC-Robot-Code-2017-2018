@@ -12,15 +12,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
-/**
- * Created by team 6934 on 5/5/2017.
- */
-
-public class FourWheelBotVuforiaClass {
-
+public class FourWheelBotVuforiaClass
+{
     // Constructor
-    public FourWheelBotVuforiaClass() {
-    }
+    public FourWheelBotVuforiaClass() {}
 
     VuforiaTrackables targets;
     VuforiaTrackableDefaultListener listener;
@@ -32,8 +27,8 @@ public class FourWheelBotVuforiaClass {
     private float mm_to_Inch = 25.4f;
 
     //Vuforia Set Up
-    public void Init_Vuforia(){
-
+    public void Init_Vuforia()
+    {
         // Vuforia LicenseKey Link .. https://developer.vuforia.com/user/register
         // Basic vuforia set up perams....
         VuforiaLocalizer.Parameters params = new VuforiaLocalizer.Parameters(R.id.cameraMonitorViewId);
@@ -94,7 +89,6 @@ public class FourWheelBotVuforiaClass {
         ((VuforiaTrackableDefaultListener)targets.get(3).getListener()).setPhoneInformation(phoneLocationOnRobot, params.cameraDirection);
 
         targets.activate();
-
     }
 
     //Vuforia Track Target
