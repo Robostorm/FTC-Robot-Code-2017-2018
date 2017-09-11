@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -22,9 +23,9 @@ public class Hardware4WheelBot
     public DcMotor  frontLeftMotor    = null;
     public DcMotor frontRightMotor = null;
     public DigitalChannel button = null;
+
     //public ColorSensor colorSensor = null;
     //public DistanceSensor distSensor = null;
-
 
     /* local OpMode members. */
     HardwareMap hwMap           =  null;
