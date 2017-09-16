@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 /**
  * Created by andrew on 9/10/17.
@@ -20,7 +21,6 @@ public class RRBotTeleop extends OpMode
     {
         //initialize hardware variables by calling the init function of the RRBotHardware class via the robot object
         robot.init(hardwareMap);
-
         telemetry.addData("Robot","is init");
     }
 
@@ -28,8 +28,11 @@ public class RRBotTeleop extends OpMode
     public void loop()
     {
         MecanumDrive();
+        GlyphArmotor();
     }
-
+    public void GlyphArmotor(){
+        robot.glyphArm.setPower(gamepad1.left_stick_y);
+    }
     public void MecanumDrive()
     {
         //calculate the magnitude of the vector
