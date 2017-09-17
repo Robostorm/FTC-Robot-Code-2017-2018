@@ -28,6 +28,7 @@ public class RRBotTeleop extends OpMode
     public void loop()
     {
         MecanumDrive();
+        GlyphArm();
     }
 
     public void MecanumDrive()
@@ -59,5 +60,10 @@ public class RRBotTeleop extends OpMode
         telemetry.addData("magnitude", r);
         telemetry.addData("angle", robotAngle);
         telemetry.addData("rotation", rightX);
+    }
+
+    public void GlyphArm()
+    {
+        robot.glyphArmMotor.setPower(-gamepad2.left_stick_y);
     }
 }
