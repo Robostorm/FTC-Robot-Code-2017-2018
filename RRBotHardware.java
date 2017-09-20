@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -18,9 +19,12 @@ public class RRBotHardware
     public DcMotor frontRightMotor = null;
     public DcMotor frontLeftMotor = null;
     public DcMotor glyphArm = null;
+    public Servo jewelArm = null;
 
     HardwareMap hwMap = null;
     private ElapsedTime period = new ElapsedTime();
+
+    public final double initServoPosition = 0.1;
 
     //Constructor
     public RRBotHardware(){}
@@ -35,6 +39,7 @@ public class RRBotHardware
         frontRightMotor = hwMap.dcMotor.get("front_right");
         frontLeftMotor = hwMap.dcMotor.get("front_left");
         glyphArm = hwMap.dcMotor.get("arm_motor");
+        jewelArm = hwMap.servo.get("jewel_servo");
 
         //set motors to drive forwards
         rearRightMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -42,6 +47,7 @@ public class RRBotHardware
         frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
         glyphArm.setDirection(DcMotor.Direction.REVERSE);
+        jewelArm.setDirection(Servo.Direction.FORWARD);
 
         //set motors to zero power
         rearRightMotor.setPower(0);
@@ -49,6 +55,7 @@ public class RRBotHardware
         frontRightMotor.setPower(0);
         frontLeftMotor.setPower(0);
         glyphArm.setPower(0);
+        jewelArm.setPosition(initServoPosition);
 
         //set motors to run using encoder guidance
         rearRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);

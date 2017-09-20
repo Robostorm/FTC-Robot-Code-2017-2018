@@ -28,7 +28,9 @@ public class RRBotAuto extends LinearOpMode
 
         waitForStart();
 
-        while(opModeIsActive())
+        
+
+        /*while(opModeIsActive())
         {
             vuforia.Track_Target();
             if(vuforia.isVisible)
@@ -36,6 +38,6 @@ public class RRBotAuto extends LinearOpMode
             else
                 telemetry.addData("Pictograph", "not visible");
             telemetry.update();
-        }
+        }*/
     }
 }
