@@ -24,8 +24,10 @@ public enum GlyphArmState
     end limit 5398 old
     */
 
-    START(0, true),
-    FRONT1(0, true),
+    //START(0, true),
+    //FRONT1(0, true),
+    START(-20, true),
+    FRONT1(-20, true),
     FRONT2(474, true),
     FRONT3(916, true),
     FRONT4(1392, true),

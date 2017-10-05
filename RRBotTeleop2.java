@@ -25,11 +25,13 @@ public class RRBotTeleop2 extends OpMode
     private final double GAMEPAD_TRIGGER_THRESHOLD = 0.3;
     private final int GLYPH_ARM_SPEED_UPDATE_MILLIS = 100;
     private final double GLYPH_ARM_MAX_SPEED = 0.5;
+    private final double GLYPH_ARM_SLOW_SPEED = 0.2;
+    private final double GLYPH_ARM_SLOW_DIST = 400;
     private final int ACCEL_TIME = 2500;
     private final double SPEED_INCREMENT = GLYPH_ARM_MAX_SPEED / (ACCEL_TIME / GLYPH_ARM_SPEED_UPDATE_MILLIS);
     private final double HOME_ARM_SPEED = 0.2;
     private final double HOME_ARM_SPEED_SLOW = 0.1;
-    private final int HOME_ARM_UP_POS = 300;
+    private final int HOME_ARM_UP_POS = 1000;
     private final int HOME_ARM_POS_THRESHOLD = 50;
     private final double HOME_WRIST_SPEED = 0.1;
     private final double ARM_OVERRIDE_STICK_THRESHOLD = 0.1;
@@ -48,6 +50,7 @@ public class RRBotTeleop2 extends OpMode
     private int deccelStartPos;
     private boolean hasCalcDeccelStartPos = false;
     private boolean hasOverridden = false;
+    private GlyphArmState beforeEndLimitState = currentArmState;
 
     @Override
     public void init()
@@ -186,21 +189,22 @@ public class RRBotTeleop2 extends OpMode
             {
                 robot.glyphArmMotor1.setPower(0);
                 robot.glyphArmMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                //hasHomed1 = true;
                 hasHomed = true;
             }
             else
             {
                 robot.glyphArmMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.glyphArmMotor1.setPower(HOME_ARM_SPEED);
+                robot.glyphArmMotor1.setPower(-HOME_ARM_SPEED);
             }
-        }/*
-        else
+        }
+        /*else
         {
             if(Math.abs(robot.glyphArmMotor1.getCurrentPosition() - HOME_ARM_UP_POS) < HOME_ARM_POS_THRESHOLD)
             {
                 hasHomedUp = true;
                 robot.glyphArmMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.glyphArmMotor1.setPower(HOME_ARM_SPEED_SLOW);
+                robot.glyphArmMotor1.setPower(-HOME_ARM_SPEED_SLOW);
             }
             else
             {
@@ -272,26 +276,6 @@ public class RRBotTeleop2 extends OpMode
             MoveGlyphWristToState(GlyphWristState.BACK);
         }
 
-        /*if((!prevStartLimitState) && robot.glyphStartLimit.getState())
-        {
-            robot.glyphArmMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            prevStartLimitState = true;
-        }
-        else if(prevStartLimitState && !(robot.glyphStartLimit.getState()))
-        {
-            prevStartLimitState = false;
-        }
-
-        if(!(prevEndLimitState) && robot.glyphEndLimit.getState())
-        {
-            robot.glyphArmMotor1.setPower(0);
-            prevEndLimitState = true;
-        }
-        else if(prevEndLimitState && !(robot.glyphStartLimit.getState()))
-        {
-            prevEndLimitState = false;
-        }*/
-
         if(Math.abs(robot.glyphArmMotor1.getCurrentPosition() - currentArmState.getArmEncoderPos()) < ARM_POS_THRESHOLD)
         {
             prevArmState = currentArmState;
@@ -359,35 +343,57 @@ public class RRBotTeleop2 extends OpMode
                     }
                 }
             }
+            else
+            {
+                armMotorSpeed = GLYPH_ARM_MAX_SPEED;
+            }
         }
-        else
-        {
-            armMotorSpeed = GLYPH_ARM_MAX_SPEED;
-        }
-
         */
         armMotorSpeed = GLYPH_ARM_MAX_SPEED;
 
-        if((!prevStartLimitState) && robot.glyphStartLimit.getState())
+        if(currentArmState == GlyphArmState.START || currentArmState == GlyphArmState.FRONT1)
+        {
+            if(robot.glyphArmMotor1.getCurrentPosition() <= GLYPH_ARM_SLOW_DIST)
+            {
+                armMotorSpeed = GLYPH_ARM_SLOW_SPEED;
+            }
+        }
+        else if(currentArmState == GlyphArmState.BACK1)
+        {
+            if(robot.glyphArmMotor1.getCurrentPosition() >= GlyphArmState.BACK1.getArmEncoderPos() - GLYPH_ARM_SLOW_DIST)
+            {
+                armMotorSpeed = GLYPH_ARM_SLOW_SPEED;
+            }
+        }
+
+        if(!prevStartLimitState && startLimitState)
         {
             armMotorSpeed = 0;
             robot.glyphArmMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            //prevStartLimitState = true;
+            prevStartLimitState = true;
         }
-        //else if(prevStartLimitState && !(robot.glyphStartLimit.getState()))
-        //{
-        //    prevStartLimitState = false;
-        //}
-
-        /*if(!(prevEndLimitState) && robot.glyphEndLimit.getState())
+        else if(prevStartLimitState && !(startLimitState))
         {
-            armMotorSpeed = 0;
+            prevStartLimitState = false;
+        }
+
+
+
+        if(!(prevEndLimitState) && endLimitState)
+        {
+            //armMotorSpeed = 0;
+            beforeEndLimitState = currentArmState;
             prevEndLimitState = true;
         }
-        else if(prevEndLimitState && !(robot.glyphStartLimit.getState()))
+        else if(prevEndLimitState && !(endLimitState))
         {
             prevEndLimitState = false;
-        }*/
+        }
+
+        if(endLimitState && currentArmState == beforeEndLimitState)
+        {
+            armMotorSpeed = 0;
+        }
 
         robot.glyphArmMotor1.setPower(armMotorSpeed);
     }
@@ -427,6 +433,7 @@ public class RRBotTeleop2 extends OpMode
     {
         telemetry.addData("ArmMotorPosition", robot.glyphArmMotor1.getCurrentPosition());
         telemetry.addData("WristMotorPosition", robot.glyphWristMotor.getCurrentPosition());
+        telemetry.addData("switch", startLimitState);
         telemetry.update();
     }
 }
