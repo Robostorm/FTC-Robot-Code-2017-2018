@@ -19,7 +19,7 @@ public class RRBotGlyphArm
     private final double GRABBER_OPEN_POS = 0.8;
     private final double GRABBER_CLOSE_POS = 0.15;
     private final int GLYPH_ARM_SPEED_UPDATE_MILLIS = 100;
-    private final double GLYPH_ARM_MAX_SPEED = 0.75;
+    private final double GLYPH_ARM_MAX_SPEED = 0.6;
     private final double GLYPH_ARM_SLOW_SPEED = 0.2;
     private final double GLYPH_ARM_SLOW_DIST = 300;
     private final int ACCEL_TIME = 2500; //not currently used
