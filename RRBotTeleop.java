@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -15,14 +14,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class RRBotTeleop extends OpMode
 {
     //construct an RRBotHardware object to reference its stuff
-    RRBotHardware robot = new RRBotHardware();
+    RRBotHardware2 robot = new RRBotHardware2();
+    RRBotMecanumDrive drive = new RRBotMecanumDrive(robot);
+    RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot);
     private ElapsedTime runtime = new ElapsedTime();
-    
-    private final double GLYPH_ARM_SPEED = 0.3;
-    private final double GLYPH_WRIST_SPEED = 0.3;
-    private final double GRABBER_OPEN_POS = 0;
-    private final double GRABBER_CLOSE_POS = 1;
-    private final double GAMEPAD_TRIGGER_THRESHOLD = 0.3;
+
+    private double GAMEPAD_TRIGGER_THRESHOLD = 0.3;
+    private boolean prevGrabberButton = false;
+    private boolean prevWristButton = false;
 
     @Override
     public void init()
@@ -34,158 +33,123 @@ public class RRBotTeleop extends OpMode
     }
 
     @Override
-    public void loop()
+    public void loop() //multiple update methods that are called to update different robot mechanisms
     {
-        MecanumDrive();
-        //GlyphArmUpdate();
-    }
+        DriveUpdate();
+        JewelArmUpdate();
 
-    public void MecanumDrive()
-    {
-        //remap input values using a function
-        double leftX = inputFunction(gamepad1.left_stick_x);
-        double leftY = inputFunction(-gamepad1.left_stick_y);
-        double rightX = inputFunction(gamepad1.right_stick_x);
-        double rightY = inputFunction(-gamepad1.right_stick_y);
-
-        //calculate the magnitude of the vector
-        double r = Math.hypot(leftX, leftY);
-
-        //calculate the angle of the vector
-        double robotAngle = Math.atan2(leftY, leftX) - Math.PI / 4;
-
-        //calculate the motor vectors and add rotation and right stick turbo
-        final double v1 = r * Math.cos(robotAngle) + rightX + rightY;
-        final double v2 = r * Math.sin(robotAngle) - rightX + rightY;
-        final double v3 = r * Math.sin(robotAngle) + rightX + rightY;
-        final double v4 = r * Math.cos(robotAngle) - rightX + rightY;
-
-        //set the motor power
-        robot.frontLeftMotor.setPower(v1);
-        robot.frontRightMotor.setPower(v2);
-        robot.rearLeftMotor.setPower(v3);
-        robot.rearRightMotor.setPower(v4);
-
-        telemetry.addData("v1", v1);
-        telemetry.addData("v2", v2);
-        telemetry.addData("v3", v3);
-        telemetry.addData("v4", v4);
-        telemetry.addData("magnitude", r);
-        telemetry.addData("angle", robotAngle);
-        telemetry.addData("rotation", rightX);
-    }
-
-    public double inputFunction(double input)
-    {
-        return (input * input * input);
-        
-        /*if(input < 0)
+        //make sure glyph arm is homed before allowing it to move
+        if(glyphArm.hasHomed())
         {
-            return (input * input) * -1;
+            GlyphArmUpdate();
         }
         else
-            return (input * input);*/
+        {
+            glyphArm.HomeArm();
+        }
+
+        Telemetry();
+    }
+
+    public void DriveUpdate()
+    {
+        drive.setMotorPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, gamepad1.right_stick_y);
     }
 
     public void JewelArmUpdate()
     {
-        if(gamepad1.left_bumper)
+        //press the a button to reset the jewel arm, just in case it goes wild during teleop
+        if(gamepad1.a)
         {
-            robot.jewelArmServo.setPosition(robot.JEWEL_ARM_SERVO_START_POS);
+            robot.jewelArmServo1.setPosition(robot.JEWEL_ARM_SERVO_1_START_POS);
         }
     }
     
-    /*public void GrabberUpdate()
-    {
-        
-    }
-
     public void GlyphArmUpdate()
     {
-        //robot.glyphArmMotor1.setPower(-gamepad2.left_stick_y);
-        
+        glyphArm.UpdateValues();
+
+        //move the glyph arm to a certain state when a button is pressed
         if(gamepad2.start)
         {
-            MoveGlyphArmToState(GlyphArmState.START);
-            MoveGlyphWristToState(GlyphWristState.START);
+            glyphArm.MoveGlyphArmToState(GlyphArmState.START);
+            glyphArm.MoveGlyphWristToState(GlyphWristState.START);
+        }
+        else if(gamepad2.right_bumper)
+        {
+            glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
+        }
+        else if(gamepad2.left_bumper)
+        {
+            glyphArm.MoveGlyphArmToState(GlyphArmState.BACK_PICKUP);
         }
         else if(gamepad2.a)
         {
-            MoveGlyphArmToState(GlyphArmState.FRONT1);
+            glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT1);
         }
         else if(gamepad2.b)
         {
-            MoveGlyphArmToState(GlyphArmState.FRONT2);
+            glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT2);
         }
         else if(gamepad2.x)
         {
-            MoveGlyphArmToState(GlyphArmState.FRONT3);
-            MoveGlyphWristToState(GlyphWristState.FRONT);
+            glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT3);
         }
         else if(gamepad2.y)
         {
-            MoveGlyphArmToState(GlyphArmState.FRONT4);
-            MoveGlyphWristToState(GlyphWristState.FRONT);
+            glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT4);
         }
         else if(gamepad2.dpad_down)
         {
-            MoveGlyphArmToState(GlyphArmState.BACK1);
-            MoveGlyphWristToState(GlyphWristState.BACK);
+            glyphArm.MoveGlyphArmToState(GlyphArmState.BACK1);
         }
         else if(gamepad2.dpad_right)
         {
-            MoveGlyphArmToState(GlyphArmState.BACK2);
-            MoveGlyphWristToState(GlyphWristState.BACK);
+            glyphArm.MoveGlyphArmToState(GlyphArmState.BACK2);
         }
         else if(gamepad2.dpad_left)
         {
-            MoveGlyphArmToState(GlyphArmState.BACK3);
-            MoveGlyphWristToState(GlyphWristState.BACK);
+            glyphArm.MoveGlyphArmToState(GlyphArmState.BACK3);
         }
         else if(gamepad2.dpad_up)
         {
-            MoveGlyphArmToState(GlyphArmState.BACK4);
-            MoveGlyphWristToState(GlyphWristState.BACK);
+            glyphArm.MoveGlyphArmToState(GlyphArmState.BACK4);
         }
-        else if(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD)
+
+        //flip the wrist when right trigger is pressed, only detects rising edge of button press
+        if(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD && !prevWristButton)
         {
-            MoveGlyphWristToState(GlyphWristState.FRONT);
+            prevWristButton = true;
+            glyphArm.FlipWrist();
         }
-        else if(gamepad2.left_trigger > GAMEPAD_TRIGGER_THRESHOLD)
+        if(!(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD))
         {
-            MoveGlyphWristToState(GlyphWristState.BACK);
+            prevWristButton = false;
         }
-        
-        if(robot.glyphStartLimit.getState())
+
+        //open/close grabber when right bumper is pressed, only detects rising edge of button press
+        if(gamepad1.right_bumper && !prevGrabberButton)
         {
-            glyphArmMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            prevGrabberButton = true;
+            glyphArm.MoveGrabber();
+        }
+        if(!gamepad1.right_bumper)
+        {
+            prevGrabberButton = false;
         }
     }
 
-    public void MoveGlyphArmToState(GlyphArmState state)
+    //debug values to be shown on driver station
+    public void Telemetry()
     {
-        if(!(glyphArmMotor1.isBusy))
-        {
-            glyphArmMotor1.setMode(DcMotor.RunMode.RUN_TO_POSITION;
-            robot.glyphArmMotor1.setTargetPosition(state.getArmEncoderPos);
-            robot.glyphArmMotor1.setPower(GLYPH_ARM_SPEED);
-        }
-    }
-    
-    public void MoveGlyphWristToState(GlyphWristState state)
-    {
-        if(!(glyphWristMotor.isBusy))
-        {
-            glyphWristMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.glyphWristMotor.setTargetPosition(state.getWristEncoderPos);
-            robot.glyphWristMotor.setPower(GLYPH_WRIST_SPEED);
-        }
-    }
-    
-    public void getEncoderPositions()
-    {
-        telemetry.addData("ArmMotorPosition", robot.glyphArmMotor1.getCurrentPosition);
-        telemtery.addData("WristMotorPosition", robot.glyphWristMotor.getCurrentPosition);
+        telemetry.addData("ArmMotorPosition", glyphArm.getArmPos());
+        telemetry.addData("WristMotorPosition", glyphArm.getWristPos());
+        telemetry.addData("startLimit", glyphArm.getStartLimitState());
+        telemetry.addData("endLimit", glyphArm.getEndLimitState());
+        telemetry.addData("ArmCurrentState", glyphArm.getCurrentArmState());
+        telemetry.addData("ArmPrevState", glyphArm.getPrevArmState());
+        telemetry.addData("WristCurrentState", glyphArm.getCurrentWristState());
+        telemetry.addData("WristPrevState", glyphArm.getPrevWristState());
         telemetry.update();
-    }*/
+    }
 }

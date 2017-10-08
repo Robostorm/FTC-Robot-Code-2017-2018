@@ -23,7 +23,7 @@ import java.util.Locale;
 @Autonomous(name = "RRBotAuto")
 public class RRBotAuto extends LinearOpMode
 {
-    RRBotHardware robot = new RRBotHardware();
+    RRBotHardware2 robot = new RRBotHardware2();
     private ElapsedTime runtime = new ElapsedTime();
     
     //constructs vuforia object
@@ -33,7 +33,10 @@ public class RRBotAuto extends LinearOpMode
     private BNO055IMU imu;
     private Orientation angles;
 
-    private final double JEWEL_ARM_SERVO_END_POS = 0.35;
+    private final double JEWEL_ARM_SERVO_1_END_POS = 0;
+    private final double JEWEL_ARM_SERVO_2_MID_POS = 0.5;
+    private final double JEWEL_ARM_SERVO_2_LEFT_POS = 0.25;
+    private final double JEWEL_ARM_SERVO_2_RIGHT_POS = 0.75;
     private final String JEWEL_ARM_COLOR_SENSOR_DIRECTION = "forwards";
     private String allianceColor;
     private final double JEWEL_TURN_SPEED = 0.3;
@@ -43,8 +46,8 @@ public class RRBotAuto extends LinearOpMode
     
     private int fieldPos = 0; //position 0 has a cryoptobox on one side, position 1 has cyroptoboxes on both sides
     private final double DISTANCE_TO_SAFE_ZONE_1 = 34;
-    private final double DISTANCE_TO_SAFE_ZONE_2_1 = 28; //was 29
-    private final double DISTANCE_TO_SAFE_ZONE_2_2 = 13; //was 11
+    private final double DISTANCE_TO_SAFE_ZONE_2_1 = 28;
+    private final double DISTANCE_TO_SAFE_ZONE_2_2 = 13;
     private final double DISTANCE_TO_SAFE_ZONE_2_3 = 3;
     private final int TURN_90 = 83;
     private final double COUNTS_PER_MOTOR_REV = 560 ;    // Andymark 20:1 gearmotor
@@ -94,6 +97,8 @@ public class RRBotAuto extends LinearOpMode
         telemetry.addData("Alliance Color", allianceColor);
         telemetry.addData("Field Position", fieldPos);
         telemetry.update();
+
+        robot.jewelArmServo2.setPosition(JEWEL_ARM_SERVO_2_MID_POS);
 
         MoveJewelArm("down");
 
@@ -173,9 +178,11 @@ public class RRBotAuto extends LinearOpMode
         
         MoveJewelArm("up");
 
+        robot.jewelArmServo2.setPosition(JEWEL_ARM_SERVO_2_LEFT_POS);
+
         //sleep(3000);
 
-        if(!ballColor.equals("unknown"))
+        /*if(!ballColor.equals("unknown"))
         {
             if(origTurnDirection.equals("left"))
             {
@@ -185,7 +192,7 @@ public class RRBotAuto extends LinearOpMode
             {
                 TurnByGyro("left", TURN_ANGLE, JEWEL_TURN_SPEED);
             }
-        }
+        }*/
 
         sleep(250);
         
@@ -236,21 +243,21 @@ public class RRBotAuto extends LinearOpMode
     {
         if(direction.equals("down"))
         {
-            double servoPos = robot.JEWEL_ARM_SERVO_START_POS;
-            while(opModeIsActive() && servoPos > JEWEL_ARM_SERVO_END_POS)
+            double servoPos = robot.JEWEL_ARM_SERVO_1_START_POS;
+            while(opModeIsActive() && servoPos > JEWEL_ARM_SERVO_1_END_POS)
             {
                 servoPos -= 0.01;
-                robot.jewelArmServo.setPosition(servoPos);
+                robot.jewelArmServo1.setPosition(servoPos);
                 sleep(50);
             }
         }
         else if(direction.equals("up"))
         {
-            double servoPos = JEWEL_ARM_SERVO_END_POS;
-            while(opModeIsActive() && servoPos < robot.JEWEL_ARM_SERVO_START_POS)
+            double servoPos = JEWEL_ARM_SERVO_1_END_POS;
+            while(opModeIsActive() && servoPos < robot.JEWEL_ARM_SERVO_1_START_POS)
             {
                 servoPos += 0.01;
-                robot.jewelArmServo.setPosition(servoPos);
+                robot.jewelArmServo1.setPosition(servoPos);
                 sleep(50);
             }
         }
@@ -258,8 +265,10 @@ public class RRBotAuto extends LinearOpMode
 
     public void KnockBallInfront()
     {
-        origTurnDirection = "left";
-        TurnByGyro("left", TURN_ANGLE, JEWEL_TURN_SPEED);
+        //origTurnDirection = "left";
+        //TurnByGyro("left", TURN_ANGLE, JEWEL_TURN_SPEED);
+
+        robot.jewelArmServo1.setPosition(JEWEL_ARM_SERVO_2_LEFT_POS);
 
         telemetry.addData("knock ball", "infront");
         telemetry.update();
@@ -267,8 +276,10 @@ public class RRBotAuto extends LinearOpMode
     
     public void KnockBallBehind()
     {
-        origTurnDirection = "right";
-        TurnByGyro("right", TURN_ANGLE, JEWEL_TURN_SPEED);
+        //origTurnDirection = "right";
+        //TurnByGyro("right", TURN_ANGLE, JEWEL_TURN_SPEED);
+
+        robot.jewelArmServo1.setPosition(JEWEL_ARM_SERVO_2_RIGHT_POS);
 
         telemetry.addData("knock ball", "behind");
         telemetry.update();

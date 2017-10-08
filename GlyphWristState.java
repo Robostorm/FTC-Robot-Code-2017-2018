@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
+//enum that stores fixed positions for glyph wrist
+
 public enum GlyphWristState
 {
+    //wrist position(encoder value)
     START(0),
-    FRONT(360),
-    BACK(-360);
+    FRONT(-1890),
+    BACK(1890);
     
     private final int wristEncoderPos;
     

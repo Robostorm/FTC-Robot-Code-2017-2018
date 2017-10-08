@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Created by andrew on 9/10/17.
  */
 
-//Teleop Opmode class for Team 12601's Relic Recovery Robot (2017-2018)
+//Depriciated and messy RRBot teleop code, NO NOT DELETE!
 
 @TeleOp(name="RRBotTeleop2")
 public class RRBotTeleop2 extends OpMode
@@ -19,18 +19,18 @@ public class RRBotTeleop2 extends OpMode
     private ElapsedTime runtime1 = new ElapsedTime();
     private ElapsedTime accelTime = new ElapsedTime();
 
-    private final double GLYPH_WRIST_SPEED = 0.3;
-    private final double GRABBER_OPEN_POS = 0;
-    private final double GRABBER_CLOSE_POS = 1;
+    private final double GLYPH_WRIST_SPEED = 1;
+    private final double GRABBER_OPEN_POS = 0.8;
+    private final double GRABBER_CLOSE_POS = 0.2;
     private final double GAMEPAD_TRIGGER_THRESHOLD = 0.3;
     private final int GLYPH_ARM_SPEED_UPDATE_MILLIS = 100;
     private final double GLYPH_ARM_MAX_SPEED = 0.5;
     private final double GLYPH_ARM_SLOW_SPEED = 0.2;
-    private final double GLYPH_ARM_SLOW_DIST = 400;
+    private final double GLYPH_ARM_SLOW_DIST = 300;
     private final int ACCEL_TIME = 2500;
     private final double SPEED_INCREMENT = GLYPH_ARM_MAX_SPEED / (ACCEL_TIME / GLYPH_ARM_SPEED_UPDATE_MILLIS);
     private final double HOME_ARM_SPEED = 0.2;
-    private final double HOME_ARM_SPEED_SLOW = 0.1;
+    private final double HOME_ARM_SPEED_SLOW = 0.075;
     private final int HOME_ARM_UP_POS = 1000;
     private final int HOME_ARM_POS_THRESHOLD = 50;
     private final double HOME_WRIST_SPEED = 0.1;
@@ -51,6 +51,7 @@ public class RRBotTeleop2 extends OpMode
     private boolean hasCalcDeccelStartPos = false;
     private boolean hasOverridden = false;
     private GlyphArmState beforeEndLimitState = currentArmState;
+    private boolean prevGrabberButton = false;
 
     @Override
     public void init()
@@ -66,19 +67,20 @@ public class RRBotTeleop2 extends OpMode
     @Override
     public void loop()
     {
-        //MecanumDrive();
+        MecanumDrive();
 
         startLimitState = !(robot.glyphStartLimit.getState());
         endLimitState = !(robot.glyphEndLimit.getState());
 
-        if(!(robot.glyphArmMotor1.isBusy()))
+        /*if(!(robot.glyphArmMotor1.isBusy()))
         {
             accelTime.reset();
-        }
+        }*/
 
         if(hasHomed)
         {
             GlyphArmUpdate();
+            GlyphWristUpdate();
             GrabberUpdate();
 
             if(runtime1.milliseconds() >= GLYPH_ARM_SPEED_UPDATE_MILLIS)
@@ -97,7 +99,7 @@ public class RRBotTeleop2 extends OpMode
         //robot.glyphArmMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         //robot.glyphArmMotor1.setPower(inputFunction(-gamepad2.left_stick_y));
 
-        getEncoderPositions();
+        Telemetry();
     }
 
     public void MecanumDrive()
@@ -151,32 +153,73 @@ public class RRBotTeleop2 extends OpMode
     {
         if(gamepad1.a)
         {
-            robot.jewelArmServo.setPosition(robot.JEWEL_ARM_SERVO_START_POS);
+            robot.jewelArmServo1.setPosition(robot.JEWEL_ARM_SERVO_1_START_POS);
         }
     }
 
     public void GrabberUpdate()
     {
-        if(Math.abs(robot.glyphWristMotor.getCurrentPosition() - GlyphWristState.FRONT.getWristEncoderPos()) < WRIST_POS_THRESHOLD)
+        if(gamepad1.right_bumper && !prevGrabberButton)
         {
-            if (gamepad1.left_bumper)
+            prevGrabberButton = true;
+            //if wrist in in front position and arm is in a front position or wrist is in back position and arm is in a back position
+            if((Math.abs(robot.glyphWristMotor.getCurrentPosition() - GlyphWristState.FRONT.getWristEncoderPos()) < WRIST_POS_THRESHOLD &&
+                    currentArmState.isFrontPos()) ||
+                    (Math.abs(robot.glyphWristMotor.getCurrentPosition() - GlyphWristState.BACK.getWristEncoderPos()) < WRIST_POS_THRESHOLD &&
+                            !currentArmState.isFrontPos()))
             {
-                robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
+                if(Math.abs(robot.grabber1Servo.getPosition() - GRABBER_OPEN_POS) < 0.01)
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                }
+                else if(Math.abs(robot.grabber1Servo.getPosition() - GRABBER_CLOSE_POS) < 0.01)
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
+                }
             }
-            else if (gamepad1.right_bumper)
+            //if wrist in in back position and arm is in a front position or wrist is in front position and arm is in a back position
+            else if((Math.abs(robot.glyphWristMotor.getCurrentPosition() - GlyphWristState.BACK.getWristEncoderPos()) < WRIST_POS_THRESHOLD &&
+                    currentArmState.isFrontPos()) ||
+                    (Math.abs(robot.glyphWristMotor.getCurrentPosition() - GlyphWristState.FRONT.getWristEncoderPos()) < WRIST_POS_THRESHOLD &&
+                            !currentArmState.isFrontPos()))
             {
-                robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                if(Math.abs(robot.grabber2Servo.getPosition() - GRABBER_OPEN_POS) < 0.01)
+                {
+                    robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                }
+                else if(Math.abs(robot.grabber2Servo.getPosition() - GRABBER_CLOSE_POS) < 0.01)
+                {
+                    robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
+                }
             }
         }
-        else if(Math.abs(robot.glyphWristMotor.getCurrentPosition() - GlyphWristState.BACK.getWristEncoderPos()) < WRIST_POS_THRESHOLD)
+        if(!gamepad1.right_bumper)
         {
-            if (gamepad1.left_bumper)
+            prevGrabberButton = false;
+        }
+
+        /*if(gamepad2.left_bumper)
+        {
+            robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
+        }
+        if(gamepad2.right_bumper)
+        {
+            robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+        }*/
+    }
+
+    public void GlyphWristUpdate()
+    {
+        if(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD)
+        {
+            if(Math.abs(robot.glyphWristMotor.getCurrentPosition() - GlyphWristState.START.getWristEncoderPos()) < WRIST_POS_THRESHOLD ||
+                    Math.abs(robot.glyphWristMotor.getCurrentPosition() - GlyphWristState.BACK.getWristEncoderPos()) < WRIST_POS_THRESHOLD)
             {
-                robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
+                MoveGlyphWristToState(GlyphWristState.FRONT);
             }
-            else if (gamepad1.right_bumper)
+            if(Math.abs(robot.glyphWristMotor.getCurrentPosition() - GlyphWristState.FRONT.getWristEncoderPos()) < WRIST_POS_THRESHOLD)
             {
-                robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                MoveGlyphWristToState(GlyphWristState.BACK);
             }
         }
     }
@@ -198,7 +241,7 @@ public class RRBotTeleop2 extends OpMode
                 robot.glyphArmMotor1.setPower(-HOME_ARM_SPEED);
             }
         }
-        /*else
+        else
         {
             if(Math.abs(robot.glyphArmMotor1.getCurrentPosition() - HOME_ARM_UP_POS) < HOME_ARM_POS_THRESHOLD)
             {
@@ -225,7 +268,7 @@ public class RRBotTeleop2 extends OpMode
                 robot.glyphArmMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 hasHomed = true;
             }
-        }*/
+        }
     }
 
     public void GlyphArmUpdate()
@@ -234,6 +277,14 @@ public class RRBotTeleop2 extends OpMode
         {
             MoveGlyphArmToState(GlyphArmState.START);
             MoveGlyphWristToState(GlyphWristState.START);
+        }
+        else if(gamepad2.right_bumper)
+        {
+            MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
+        }
+        else if(gamepad2.left_bumper)
+        {
+            MoveGlyphArmToState(GlyphArmState.BACK_PICKUP);
         }
         else if(gamepad2.a)
         {
@@ -267,14 +318,14 @@ public class RRBotTeleop2 extends OpMode
         {
             MoveGlyphArmToState(GlyphArmState.BACK4);
         }
-        else if(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD)
+        /*else if(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD)
         {
             MoveGlyphWristToState(GlyphWristState.FRONT);
         }
         else if(gamepad2.left_trigger > GAMEPAD_TRIGGER_THRESHOLD)
         {
             MoveGlyphWristToState(GlyphWristState.BACK);
-        }
+        }*/
 
         if(Math.abs(robot.glyphArmMotor1.getCurrentPosition() - currentArmState.getArmEncoderPos()) < ARM_POS_THRESHOLD)
         {
@@ -349,22 +400,33 @@ public class RRBotTeleop2 extends OpMode
             }
         }
         */
+
         armMotorSpeed = GLYPH_ARM_MAX_SPEED;
 
-        if(currentArmState == GlyphArmState.START || currentArmState == GlyphArmState.FRONT1)
+        if(currentArmState == GlyphArmState.START || currentArmState == GlyphArmState.FRONT_PICKUP)
         {
             if(robot.glyphArmMotor1.getCurrentPosition() <= GLYPH_ARM_SLOW_DIST)
             {
                 armMotorSpeed = GLYPH_ARM_SLOW_SPEED;
             }
         }
-        else if(currentArmState == GlyphArmState.BACK1)
+        else if(currentArmState == GlyphArmState.BACK_PICKUP)
         {
-            if(robot.glyphArmMotor1.getCurrentPosition() >= GlyphArmState.BACK1.getArmEncoderPos() - GLYPH_ARM_SLOW_DIST)
+            if(robot.glyphArmMotor1.getCurrentPosition() >= GlyphArmState.BACK_PICKUP.getArmEncoderPos() - GLYPH_ARM_SLOW_DIST)
             {
                 armMotorSpeed = GLYPH_ARM_SLOW_SPEED;
             }
         }
+
+        /*double slowdownRes = (currentArmState.getArmEncoderPos() - GLYPH_ARM_SLOW_DIST) / GLYPH_ARM_SPEED_UPDATE_MILLIS;
+
+        if(currentArmState == GlyphArmState.START || currentArmState == GlyphArmState.FRONT1)
+        {
+            if (robot.glyphArmMotor1.getCurrentPosition() <= GLYPH_ARM_SLOW_DIST && armMotorSpeed > GLYPH_ARM_SLOW_SPEED)
+            {
+                armMotorSpeed -= slowdownRes;
+            }
+        }*/
 
         if(!prevStartLimitState && startLimitState)
         {
@@ -376,8 +438,6 @@ public class RRBotTeleop2 extends OpMode
         {
             prevStartLimitState = false;
         }
-
-
 
         if(!(prevEndLimitState) && endLimitState)
         {
@@ -400,40 +460,50 @@ public class RRBotTeleop2 extends OpMode
 
     public void MoveGlyphArmToState(GlyphArmState state)
     {
-        currentArmState = state;
-        hasOverridden = false;
-
-        if(prevArmState == GlyphArmState.START)
+        //if(robot.grabber1Servo.getPosition() != GRABBER_OPEN_POS && robot.grabber2Servo.getPosition() != GRABBER_OPEN_POS)
+        if(!(Math.abs(robot.grabber1Servo.getPosition() - GRABBER_OPEN_POS) < 0.01) && !(Math.abs(robot.grabber2Servo.getPosition() - GRABBER_OPEN_POS) < 0.01))
         {
-            if(state != GlyphArmState.START && state.isFrontPos())
-            {
-                MoveGlyphWristToState(GlyphWristState.FRONT);
-            }
+            currentArmState = state;
+            hasOverridden = false;
 
-            if(!state.isFrontPos())
+            /*if (prevArmState == GlyphArmState.START)
             {
-                MoveGlyphWristToState(GlyphWristState.BACK);
-            }
+                if (state != GlyphArmState.START && state.isFrontPos())
+                {
+                    MoveGlyphWristToState(GlyphWristState.FRONT);
+                }
+
+                if (!state.isFrontPos())
+                {
+                    MoveGlyphWristToState(GlyphWristState.BACK);
+                }
+            }*/
+
+            robot.glyphArmMotor1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.glyphArmMotor1.setTargetPosition(state.getArmEncoderPos());
+            //robot.glyphArmMotor1.setPower(GLYPH_ARM_MAX_SPEED);
+            //hasCalcDeccelStartPos = false;
         }
-
-        robot.glyphArmMotor1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.glyphArmMotor1.setTargetPosition(state.getArmEncoderPos());
-        //robot.glyphArmMotor1.setPower(GLYPH_ARM_MAX_SPEED);
-        hasCalcDeccelStartPos = false;
     }
 
     public void MoveGlyphWristToState(GlyphWristState state)
     {
-        robot.glyphWristMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.glyphWristMotor.setTargetPosition(state.getWristEncoderPos());
-        robot.glyphWristMotor.setPower(GLYPH_WRIST_SPEED);
+        if(!(Math.abs(robot.grabber1Servo.getPosition() - GRABBER_OPEN_POS) < 0.01) && !(Math.abs(robot.grabber2Servo.getPosition() - GRABBER_OPEN_POS) < 0.01))
+        {
+            robot.glyphWristMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.glyphWristMotor.setTargetPosition(state.getWristEncoderPos());
+            robot.glyphWristMotor.setPower(GLYPH_WRIST_SPEED);
+        }
     }
 
-    public void getEncoderPositions()
+    public void Telemetry()
     {
         telemetry.addData("ArmMotorPosition", robot.glyphArmMotor1.getCurrentPosition());
         telemetry.addData("WristMotorPosition", robot.glyphWristMotor.getCurrentPosition());
-        telemetry.addData("switch", startLimitState);
+        telemetry.addData("startLimit", startLimitState);
+        telemetry.addData("endLimit", endLimitState);
+        telemetry.addData("ArmCurrentState", currentArmState);
+        telemetry.addData("ArmPrevState", prevArmState);
         telemetry.update();
     }
 }
