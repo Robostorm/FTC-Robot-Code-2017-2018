@@ -26,6 +26,8 @@ public class RRBotHardware2
     public Servo jewelArmServo2 = null;
     public Servo grabber1Servo = null;
     public Servo grabber2Servo = null;
+    public Servo relicInitServo = null;
+    public Servo relicGrabberServo = null;
     public ColorSensor jewelArmColor = null;
     //public ColorSensor floorColor = null;
     public DigitalChannel allianceColorSwitch = null;
@@ -39,6 +41,8 @@ public class RRBotHardware2
     public static final double JEWEL_ARM_SERVO_1_START_POS = 0;
     public static final double JEWEL_ARM_SERVO_2_START_POS = 0.75;
     public static final double GRABBER_START_POS = 0.2;
+    public static final double RELIC_INIT_SERVO_START_POS = 0.35;
+    public static final double RELIC_GRABBER_SERVO_START_POS = 0;
 
     public RRBotHardware2(){}
 
@@ -58,6 +62,8 @@ public class RRBotHardware2
         jewelArmServo2 = hwMap.servo.get("jewel_arm_2");
         grabber1Servo = hwMap.servo.get("grabber_1");
         grabber2Servo = hwMap.servo.get("grabber_2");
+        relicInitServo = hwMap.servo.get("relic_init");
+        relicGrabberServo = hwMap.servo.get("relic_grabber");
         jewelArmColor = hwMap.colorSensor.get("arm_color");
         //floorColor = hwMap.colorSensor.get("floor_color");
         allianceColorSwitch = hwMap.digitalChannel.get("alliance_color");
@@ -106,6 +112,8 @@ public class RRBotHardware2
         jewelArmServo2.setPosition(JEWEL_ARM_SERVO_2_START_POS);
         grabber1Servo.setPosition(GRABBER_START_POS);
         grabber2Servo.setPosition(GRABBER_START_POS);
+        relicInitServo.setPosition(RELIC_INIT_SERVO_START_POS);
+        relicGrabberServo.setPosition(RELIC_GRABBER_SERVO_START_POS);
 
         //set digital channels to input mode
         allianceColorSwitch.setMode(DigitalChannel.Mode.INPUT);

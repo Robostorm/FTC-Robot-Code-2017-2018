@@ -15,7 +15,10 @@ public enum GlyphArmState
     BACK3(4171, false), //was 4416
     BACK2(4692, false), //was 4875
     BACK1(5150, false),
-    BACK_PICKUP(5350, false);  //5384 max
+    BACK_PICKUP(5350, false),  //5384 max
+    RELIC_PICKUP(3000, false),
+    RELIC_PLACE(4470, false),
+    RELIC_DONE(-30, true);
     
     private final int armEncoderPos;
     private final boolean isFrontPos;

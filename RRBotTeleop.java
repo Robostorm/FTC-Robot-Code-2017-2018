@@ -22,6 +22,8 @@ public class RRBotTeleop extends OpMode
     private double GAMEPAD_TRIGGER_THRESHOLD = 0.3;
     private boolean prevGrabberButton = false;
     private boolean prevWristButton = false;
+    private boolean prevRelicModeButton = false;
+    private boolean prevRelicGrabberButton = false;
 
     @Override
     public void init()
@@ -69,73 +71,113 @@ public class RRBotTeleop extends OpMode
     {
         glyphArm.UpdateValues();
 
-        //move the glyph arm to a certain state when a button is pressed
-        if(gamepad2.start)
+        //toggle relic mode when left trigger is pressed, only detects rising edge of button press
+        if(gamepad2.left_trigger > GAMEPAD_TRIGGER_THRESHOLD && !prevRelicModeButton)
         {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.START);
-            glyphArm.MoveGlyphWristToState(GlyphWristState.START);
+            prevRelicModeButton = true;
+            glyphArm.ToggleRelicMode();
         }
-        else if(gamepad2.right_bumper)
+        if(!(gamepad2.left_trigger > GAMEPAD_TRIGGER_THRESHOLD))
         {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
-        }
-        else if(gamepad2.left_bumper)
-        {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.BACK_PICKUP);
-        }
-        else if(gamepad2.a)
-        {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT1);
-        }
-        else if(gamepad2.b)
-        {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT2);
-        }
-        else if(gamepad2.x)
-        {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT3);
-        }
-        else if(gamepad2.y)
-        {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT4);
-        }
-        else if(gamepad2.dpad_down)
-        {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.BACK1);
-        }
-        else if(gamepad2.dpad_right)
-        {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.BACK2);
-        }
-        else if(gamepad2.dpad_left)
-        {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.BACK3);
-        }
-        else if(gamepad2.dpad_up)
-        {
-            glyphArm.MoveGlyphArmToState(GlyphArmState.BACK4);
+            prevRelicModeButton = false;
         }
 
-        //flip the wrist when right trigger is pressed, only detects rising edge of button press
-        if(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD && !prevWristButton)
+        if(!glyphArm.isInRelicMode()) //glyph mode stuff
         {
-            prevWristButton = true;
-            glyphArm.FlipWrist();
-        }
-        if(!(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD))
-        {
-            prevWristButton = false;
-        }
+            //move the glyph arm to a certain state when a button is pressed
+            if(gamepad2.start)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.START);
+                glyphArm.MoveGlyphWristToState(GlyphWristState.START);
+            }
+            else if(gamepad2.right_bumper)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
+            }
+            else if(gamepad2.left_bumper)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.BACK_PICKUP);
+            }
+            else if(gamepad2.a)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT1);
+            }
+            else if(gamepad2.b)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT2);
+            }
+            else if(gamepad2.x)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT3);
+            }
+            else if(gamepad2.y)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT4);
+            }
+            else if(gamepad2.dpad_down)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.BACK1);
+            }
+            else if(gamepad2.dpad_right)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.BACK2);
+            }
+            else if(gamepad2.dpad_left)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.BACK3);
+            }
+            else if(gamepad2.dpad_up)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.BACK4);
+            }
 
-        //open/close grabber when right bumper is pressed, only detects rising edge of button press
-        if(gamepad1.right_bumper && !prevGrabberButton)
-        {
-            prevGrabberButton = true;
-            glyphArm.MoveGrabber();
+            //flip the wrist when right trigger is pressed, only detects rising edge of button press
+            if(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD && !prevWristButton)
+            {
+                prevWristButton = true;
+                glyphArm.FlipWrist();
+            }
+            if(!(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD))
+            {
+                prevWristButton = false;
+            }
+
+            //open/close grabber when right bumper is pressed, only detects rising edge of button press
+            if(gamepad1.right_bumper && !prevGrabberButton)
+            {
+                prevGrabberButton = true;
+                glyphArm.MoveGrabber();
+            }
+            if(!gamepad1.right_bumper)
+            {
+                prevGrabberButton = false;
+            }
         }
-        if(!gamepad1.right_bumper)
+        else //relic mode stuff
         {
-            prevGrabberButton = false;
+            if(gamepad2.a)
+            {
+                glyphArm.MoveToRelicPickupPos();
+            }
+            else if(gamepad2.b)
+            {
+                glyphArm.MoveToRelicPlacePos();
+            }
+            else if(gamepad2.x)
+            {
+                glyphArm.MoveToRelicDonePos();
+            }
+
+            //open/close relic grabber when right bumper is pressed, only detects rising edge of button press
+            if(gamepad2.right_bumper && !prevRelicGrabberButton)
+            {
+                prevRelicGrabberButton = true;
+                glyphArm.MoveRelicGrabber();
+            }
+            if(!gamepad2.right_bumper)
+            {
+                prevRelicGrabberButton = false;
+            }
         }
     }
 
@@ -146,6 +188,7 @@ public class RRBotTeleop extends OpMode
         telemetry.addData("WristMotorPosition", glyphArm.getWristPos());
         telemetry.addData("startLimit", glyphArm.getStartLimitState());
         telemetry.addData("endLimit", glyphArm.getEndLimitState());
+        telemetry.addData("relicMode", glyphArm.isInRelicMode());
         telemetry.addData("ArmCurrentState", glyphArm.getCurrentArmState());
         telemetry.addData("ArmPrevState", glyphArm.getPrevArmState());
         telemetry.addData("WristCurrentState", glyphArm.getCurrentWristState());

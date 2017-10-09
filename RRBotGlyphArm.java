@@ -30,6 +30,12 @@ public class RRBotGlyphArm
     private final int HOME_ARM_POS_THRESHOLD = 50; //not currently used
     private final int ARM_POS_THRESHOLD = 100;
     private final int WRIST_POS_THRESHOLD = 100;
+    private final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.35;
+    private final double RELIC_INIT_SERVO_RELICMODE_POS = 0.76;
+    private final double RELIC_GRABBER_OPEN_POS = 0.2;
+    private final double RELIC_GRABBER_CLOSE_POS = 1.0;
+    private final double RELIC_MODE_ARM_SPEED = 0.5;
+    private final double RELIC_MODE_WRIST_SPEED = 0.5;
 
     private GlyphArmState prevArmState = GlyphArmState.START;
     private GlyphArmState currentArmState = GlyphArmState.START;
@@ -45,6 +51,7 @@ public class RRBotGlyphArm
     private boolean hasCalcDeccelStartPos = false; //not currently used
     private boolean hasOverridden = false; //not currently used
     private GlyphArmState beforeEndLimitState = currentArmState;
+    private boolean relicMode = false;
 
     //constructor gets hardware object from teleop class when it is constructed
     public RRBotGlyphArm(RRBotHardware2 robot)
@@ -97,7 +104,15 @@ public class RRBotGlyphArm
             //use RUN_TO_POSITION mode to move the motor to desired position using PID
             robot.glyphWristMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             robot.glyphWristMotor.setTargetPosition(state.getWristEncoderPos());
-            robot.glyphWristMotor.setPower(GLYPH_WRIST_SPEED);
+
+            if(!relicMode)
+            {
+                robot.glyphWristMotor.setPower(GLYPH_WRIST_SPEED);
+            }
+            else
+            {
+                robot.glyphWristMotor.setPower(RELIC_MODE_WRIST_SPEED);
+            }
         }
     }
 
@@ -169,6 +184,11 @@ public class RRBotGlyphArm
             }
         }
 
+        if(relicMode)
+        {
+            armMotorSpeed = RELIC_MODE_ARM_SPEED;
+        }
+
         //stop arm and reset encoder if start limit switch is pressed, only detect rising edge
         if(!prevStartLimitState && getStartLimitState())
         {
@@ -216,6 +236,73 @@ public class RRBotGlyphArm
             robot.glyphArmMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             robot.glyphArmMotor1.setPower(-HOME_ARM_SPEED);
         }
+    }
+
+    public void ToggleRelicMode()
+    {
+        if(relicMode)
+        {
+            relicMode = false;
+        }
+        else
+        {
+            relicMode = true;
+        }
+
+        MoveRelicInitServo();
+    }
+
+    public void MoveRelicInitServo()
+    {
+        if(relicMode)
+        {
+            robot.relicInitServo.setPosition(RELIC_INIT_SERVO_RELICMODE_POS);
+        }
+        else
+        {
+            robot.relicInitServo.setPosition(RELIC_INIT_SERVO_GLYPHMODE_POS);
+        }
+    }
+
+    public void MoveRelicGrabber()
+    {
+        if(relicMode)
+        {
+            if(isRelicGrabberOpen())
+            {
+                robot.relicGrabberServo.setPosition(RELIC_GRABBER_CLOSE_POS);
+            }
+            else
+            {
+                robot.relicGrabberServo.setPosition(RELIC_GRABBER_OPEN_POS);
+            }
+        }
+    }
+
+    public void MoveToRelicPickupPos()
+    {
+        MoveGlyphArmToState(GlyphArmState.RELIC_PICKUP);
+
+        if(prevArmState == currentArmState)
+        {
+            MoveGlyphWristToState(GlyphWristState.RELIC_PICKUP);
+        }
+    }
+
+    public void MoveToRelicPlacePos()
+    {
+        MoveGlyphWristToState(GlyphWristState.RELIC_PLACE);
+
+        if(prevWristState == currentWristState)
+        {
+            MoveGlyphArmToState(GlyphArmState.RELIC_PLACE);
+        }
+    }
+
+    public void MoveToRelicDonePos()
+    {
+        MoveGlyphArmToState(GlyphArmState.RELIC_DONE);
+        MoveGlyphWristToState(GlyphWristState.RELIC_DONE);
     }
 
     public boolean getStartLimitState()
@@ -273,5 +360,15 @@ public class RRBotGlyphArm
     public boolean hasHomed()
     {
         return hasHomed;
+    }
+
+    public boolean isInRelicMode()
+    {
+        return relicMode;
+    }
+
+    public boolean isRelicGrabberOpen()
+    {
+        return Math.abs(robot.relicGrabberServo.getPosition() - RELIC_GRABBER_OPEN_POS) < 0.01;
     }
 }
