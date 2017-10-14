@@ -39,7 +39,7 @@ public class RRBotHardware2
     private ElapsedTime period = new ElapsedTime();
 
     public static final double JEWEL_ARM_SERVO_1_START_POS = 0;
-    public static final double JEWEL_ARM_SERVO_2_START_POS = 0.75;
+    public static final double JEWEL_ARM_SERVO_2_START_POS = 1;
     public static final double GRABBER_START_POS = 0.2;
     public static final double RELIC_INIT_SERVO_START_POS = 0.35;
     public static final double RELIC_GRABBER_SERVO_START_POS = 0;
@@ -50,6 +50,7 @@ public class RRBotHardware2
     {
         hwMap = ahwMap;
 
+        /*
         //Initialize hardware
         rearRightMotor = hwMap.dcMotor.get("rear_right");
         rearLeftMotor = hwMap.dcMotor.get("rear_left");
@@ -95,7 +96,7 @@ public class RRBotHardware2
         frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         glyphArmMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        //glyphArmMotor2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //glyphArmMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         glyphWristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         //sets motors to brake mode
@@ -118,6 +119,27 @@ public class RRBotHardware2
         //set digital channels to input mode
         allianceColorSwitch.setMode(DigitalChannel.Mode.INPUT);
         fieldPosSwitch.setMode(DigitalChannel.Mode.INPUT);
+        glyphStartLimit.setMode(DigitalChannel.Mode.INPUT);
+        glyphEndLimit.setMode(DigitalChannel.Mode.INPUT);
+        */
+
+        glyphArmMotor1 = hwMap.dcMotor.get("glyph_arm_1");
+        glyphWristMotor = hwMap.dcMotor.get("glyph_wrist");
+        glyphStartLimit = hwMap.digitalChannel.get("glyph_start_limit");
+        glyphEndLimit = hwMap.digitalChannel.get("glyph_end_limit");
+
+        glyphArmMotor1.setDirection(DcMotor.Direction.FORWARD);
+        glyphWristMotor.setDirection(DcMotor.Direction.FORWARD);
+
+        glyphArmMotor1.setPower(0);
+        glyphWristMotor.setPower(0);
+
+        glyphArmMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        glyphWristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        glyphArmMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        glyphWristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         glyphStartLimit.setMode(DigitalChannel.Mode.INPUT);
         glyphEndLimit.setMode(DigitalChannel.Mode.INPUT);
     }

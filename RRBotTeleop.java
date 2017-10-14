@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 /**
  * Created by andrew on 9/10/17.
@@ -17,10 +18,11 @@ public class RRBotTeleop extends OpMode
     RRBotHardware2 robot = new RRBotHardware2();
     RRBotMecanumDrive drive = new RRBotMecanumDrive(robot);
     RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot);
-    private ElapsedTime runtime = new ElapsedTime();
-
-    private double GAMEPAD_TRIGGER_THRESHOLD = 0.3;
-    private boolean prevGrabberButton = false;
+    
+    private final double GAMEPAD_TRIGGER_THRESHOLD = 0.3;
+    private final double JOYSTICK_DEADZONE = 0.1;
+    private boolean prevGrabberOpenButton = false;
+    private boolean prevGrabberReleaseButton = false;
     private boolean prevWristButton = false;
     private boolean prevRelicModeButton = false;
     private boolean prevRelicGrabberButton = false;
@@ -35,8 +37,10 @@ public class RRBotTeleop extends OpMode
     }
 
     @Override
-    public void loop() //multiple update methods that are called to update different robot mechanisms
+    public void loop()
     {
+        //multiple update methods that are called to update different robot mechanisms
+
         DriveUpdate();
         JewelArmUpdate();
 
@@ -143,17 +147,28 @@ public class RRBotTeleop extends OpMode
             }
 
             //open/close grabber when right bumper is pressed, only detects rising edge of button press
-            if(gamepad1.right_bumper && !prevGrabberButton)
+            if(gamepad1.right_bumper && !prevGrabberOpenButton)
             {
-                prevGrabberButton = true;
-                glyphArm.MoveGrabber();
+                prevGrabberOpenButton = true;
+                glyphArm.MoveGrabber("open");
             }
             if(!gamepad1.right_bumper)
             {
-                prevGrabberButton = false;
+                prevGrabberOpenButton = false;
+            }
+
+            //release glyph/close grabber when left bumper is pressed, only detects rising edge of button press
+            if(gamepad1.left_bumper && !prevGrabberReleaseButton)
+            {
+                prevGrabberReleaseButton = true;
+                glyphArm.MoveGrabber("release");
+            }
+            if(!gamepad1.left_bumper)
+            {
+                prevGrabberReleaseButton = false;
             }
         }
-        else //relic mode stuff
+        else //relic mode
         {
             if(gamepad2.a)
             {
@@ -179,6 +194,18 @@ public class RRBotTeleop extends OpMode
                 prevRelicGrabberButton = false;
             }
         }
+
+        //if y axis of left joystick is outside the deadzone, EnableArmJoystick is called, which enables the arm to be moved via joystick
+        if(Math.abs(gamepad2.left_stick_y) > JOYSTICK_DEADZONE)
+        {
+            glyphArm.EnableArmJoystick(-gamepad2.left_stick_y);
+        }
+
+        //if y axis of right joystick is outside deadzone, EnableWristJoystick is called, which enables the arm to be moved via joystick
+        if(Math.abs(gamepad2.right_stick_y) > JOYSTICK_DEADZONE)
+        {
+            glyphArm.EnableWristJoystick(-gamepad2.right_stick_y);
+        }
     }
 
     //debug values to be shown on driver station
@@ -193,6 +220,7 @@ public class RRBotTeleop extends OpMode
         telemetry.addData("ArmPrevState", glyphArm.getPrevArmState());
         telemetry.addData("WristCurrentState", glyphArm.getCurrentWristState());
         telemetry.addData("WristPrevState", glyphArm.getPrevWristState());
+        telemetry.addData("joystickValue", glyphArm.getJoystickValue());
         telemetry.update();
     }
 }

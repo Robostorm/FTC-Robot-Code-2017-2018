@@ -10,7 +10,7 @@ public enum GlyphArmState
     FRONT1(186, true),
     FRONT2(688, true), //was 474
     FRONT3(1116, true), //was 916
-    FRONT4(1660, true), //was 1392
+    FRONT4(1600, true), //was 1392
     BACK4(3680, false), //was 3962
     BACK3(4171, false), //was 4416
     BACK2(4692, false), //was 4875

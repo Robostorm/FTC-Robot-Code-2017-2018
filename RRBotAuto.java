@@ -33,10 +33,10 @@ public class RRBotAuto extends LinearOpMode
     private BNO055IMU imu;
     private Orientation angles;
 
-    private final double JEWEL_ARM_SERVO_1_END_POS = 0;
+    private final double JEWEL_ARM_SERVO_1_END_POS = 1;
     private final double JEWEL_ARM_SERVO_2_MID_POS = 0.5;
-    private final double JEWEL_ARM_SERVO_2_LEFT_POS = 0.25;
-    private final double JEWEL_ARM_SERVO_2_RIGHT_POS = 0.75;
+    private final double JEWEL_ARM_SERVO_2_LEFT_POS = 0;
+    private final double JEWEL_ARM_SERVO_2_RIGHT_POS = 1;
     private final String JEWEL_ARM_COLOR_SENSOR_DIRECTION = "forwards";
     private String allianceColor;
     private final double JEWEL_TURN_SPEED = 0.3;
