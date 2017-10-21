@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.TetrixBot;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -14,8 +15,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class HardwareTetrixBot
 {
     /* Public OpMode members. */
-    public DcMotor  rearLeftMotor   = null;
-    public DcMotor  rearRightMotor  = null;
+    public DcMotor rearLeftMotor = null;
+    public DcMotor rearRightMotor = null;
+    public DcMotor frontLeftMotor = null;
+    public DcMotor frontRightMotor = null;
 
     //public ColorSensor colorSensor = null;
     //public DistanceSensor distSensor = null;
@@ -39,8 +42,20 @@ public class HardwareTetrixBot
         // Define distance Sensor
 
         //drive forewards
-        rearLeftMotor.setDirection(DcMotor.Direction.FORWARD);
-        rearRightMotor.setDirection(DcMotor.Direction.REVERSE);}
+        rearLeftMotor.setDirection(DcMotor.Direction.REVERSE);
+        rearRightMotor.setDirection(DcMotor.Direction.FORWARD);}
+
+    // Set all motors to zero power
+       // rearLeftMotor.setPower(0);
+       // rearRightMotor.setPower(0);
+
+//sets motors to run with encoder correction
+        //rearLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //rearRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        //sets motors to brake mode
+        //rearLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //rearRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //drive backwards
         /*rearLeftMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -54,21 +69,15 @@ public class HardwareTetrixBot
         //colorSensor = hwMap.colorSensor.get("color_sensor");
         //distSensor = hwMap.DistanceSensor.get("color_sensor");
 
-        // Set all motors to zero power
-        rearLeftMotor.setPower(0);
-        rearRightMotor.setPower(0);
+
 
         //set motors to run without encoder guidance
         /*rearLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rearRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        //sets motors to run with encoder correction
-        rearLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rearRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        //sets motors to brake mode
-        rearLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rearRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+
 
         //sets motors to coast mode
         /*rearLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
