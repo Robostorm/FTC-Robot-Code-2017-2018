@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,9 +10,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Created by andrew on 9/10/17.
  */
 
-//Depriciated and messy RRBot teleop code, NO NOT DELETE!
+//Depriciated and messy RRBot teleop code, DO NOT DELETE!
 
 @TeleOp(name="RRBotTeleop2")
+@Disabled
 public class RRBotTeleop2 extends OpMode
 {
     //construct an RRBotHardware object to reference its stuff
@@ -37,8 +39,8 @@ public class RRBotTeleop2 extends OpMode
     private final double ARM_OVERRIDE_STICK_THRESHOLD = 0.1;
     private final int ARM_POS_THRESHOLD = 100;
     private final int WRIST_POS_THRESHOLD = 100;
-    private GlyphArmState prevArmState = GlyphArmState.START;
-    private GlyphArmState currentArmState = GlyphArmState.START;
+    private GlyphArmState prevArmState = GlyphArmState.FRONT_PICKUP;
+    private GlyphArmState currentArmState = GlyphArmState.FRONT_PICKUP;
     private boolean prevStartLimitState = false;
     private boolean prevEndLimitState = false;
     private double armMotorSpeed = 0;
@@ -275,7 +277,7 @@ public class RRBotTeleop2 extends OpMode
     {
         if(gamepad2.start)
         {
-            MoveGlyphArmToState(GlyphArmState.START);
+            MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
             MoveGlyphWristToState(GlyphWristState.START);
         }
         else if(gamepad2.right_bumper)
@@ -403,7 +405,7 @@ public class RRBotTeleop2 extends OpMode
 
         armMotorSpeed = GLYPH_ARM_MAX_SPEED;
 
-        if(currentArmState == GlyphArmState.START || currentArmState == GlyphArmState.FRONT_PICKUP)
+        if(currentArmState == GlyphArmState.FRONT_PICKUP)
         {
             if(robot.glyphArmMotor1.getCurrentPosition() <= GLYPH_ARM_SLOW_DIST)
             {

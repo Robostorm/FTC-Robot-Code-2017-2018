@@ -11,8 +11,10 @@ import com.qualcomm.robotcore.util.Range;
 //class that controls the glyph/relic arm
 public class RRBotGlyphArm
 {
-    RRBotHardware2 robot;
+    RRBotHardware robot;
     private ElapsedTime joystickTime = new ElapsedTime();
+    private ElapsedTime accelTime = new ElapsedTime();
+    private ElapsedTime accelUpdateTime = new ElapsedTime();
 
     //final variables for values that will not change
     private final double GLYPH_WRIST_SPEED = 1;
@@ -23,20 +25,24 @@ public class RRBotGlyphArm
     private final double GLYPH_ARM_SLOW_SPEED = 0.2;
     private final double GLYPH_ARM_SLOW_DIST = 300;
     private final double HOME_ARM_SPEED = 0.2;
+    private final double GLYPH_ARM_FAST_SPEED = 0.8;
     private final int ARM_POS_THRESHOLD = 50;
     private final int WRIST_POS_THRESHOLD = 30;
-    private final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.35;
-    private final double RELIC_INIT_SERVO_RELICMODE_POS = 0.76;
-    private final double RELIC_GRABBER_OPEN_POS = 0.2;
-    private final double RELIC_GRABBER_CLOSE_POS = 1.0;
-    private final double RELIC_MODE_ARM_SPEED = 0.5;
-    private final double RELIC_MODE_WRIST_SPEED = 0.5;
-    private final int ARM_JOYSTICK_INCREMENT = 25;
-    private final int WRIST_JOYSTICK_INCREMENT = 50;
-    private final int JOYSTICK_UPDATE_MILLIS = 10;
+    private final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.2; //was .35
+    private final double RELIC_INIT_SERVO_RELICMODE_POS = 0.6; //was .76
+    private final double RELIC_GRABBER_OPEN_POS = 0;
+    private final double RELIC_GRABBER_CLOSE_POS = 0.8;
+    private final double RELIC_MODE_ARM_SPEED = 0.6;
+    private final double RELIC_MODE_WRIST_SPEED = 0.3;
+    private final int ARM_JOYSTICK_INCREMENT = 40;
+    private final int WRIST_JOYSTICK_INCREMENT = 70;
+    private final int JOYSTICK_UPDATE_MILLIS = 5;
+    private final int GLYPH_ARM_SPEED_UPDATE_MILLIS = 10;
+    private final int ACCEL_TIME = 1000;
+    private final double SPEED_INCREMENT = GLYPH_ARM_FAST_SPEED / (ACCEL_TIME / GLYPH_ARM_SPEED_UPDATE_MILLIS);
 
-    private GlyphArmState prevArmState = GlyphArmState.START;
-    private GlyphArmState currentArmState = GlyphArmState.START;
+    private GlyphArmState prevArmState = GlyphArmState.FRONT_PICKUP;
+    private GlyphArmState currentArmState = GlyphArmState.FRONT_PICKUP;
     private GlyphWristState prevWristState = GlyphWristState.START;
     private GlyphWristState currentWristState = GlyphWristState.START;
     private boolean prevStartLimitState = false;
@@ -49,7 +55,7 @@ public class RRBotGlyphArm
     private double joystickValue;
 
     //constructor gets hardware object from teleop class when it is constructed
-    public RRBotGlyphArm(RRBotHardware2 robot)
+    public RRBotGlyphArm(RRBotHardware robot)
     {
         this.robot = robot;
     }
@@ -70,18 +76,31 @@ public class RRBotGlyphArm
         
         GlyphArmSpeedUpdate();
         GlyphWristSpeedUpdate();
+
+        /*if(accelUpdateTime.milliseconds() >= GLYPH_ARM_SPEED_UPDATE_MILLIS)
+        {
+            if(prevArmState.isFrontPos() != prevArmState.isFrontPos())
+            {
+                ArmAccelUpdate();
+            }
+            accelUpdateTime.reset();
+        }*/
+
     }
 
     public void MoveGlyphArmToState(GlyphArmState state)
     {
-        //make sure neither grabber is open
-        if(!getGrabber1Pos().equals("open") && !getGrabber2Pos().equals("open"))
+        //make sure neither grabber is open if arm is going between front and back positions
+        if(prevArmState.isFrontPos() == state.isFrontPos() || !getGrabber1Pos().equals("open") && !getGrabber2Pos().equals("open"))
         {
-            currentArmState = state;
+            if(currentArmState != state)
+            {
+                currentArmState = state;
 
-            //use RUN_TO_POSITION mode to move the motor to desired position using PID
-            robot.glyphArmMotor1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.glyphArmMotor1.setTargetPosition(state.getArmEncoderPos());
+                //use RUN_TO_POSITION mode to move the motor to desired position using PID
+                robot.glyphArmMotor1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.glyphArmMotor1.setTargetPosition(state.getArmEncoderPos());
+            }
         }
     }
 
@@ -100,6 +119,9 @@ public class RRBotGlyphArm
 
     public void FlipWrist()
     {
+        robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+
         //if wrist is in the start or back positions, move it to the front position
         if(currentWristState == GlyphWristState.START || currentWristState == GlyphWristState.BACK)
         {
@@ -158,7 +180,7 @@ public class RRBotGlyphArm
         armMotorSpeed = GLYPH_ARM_MAX_SPEED;
 
         //if the arm is moving to the start or front_pickup positions, and in the encoder distance GLYPH_ARM_SLOW_DISTANCE before the target position, slow the arm down to GLYPH_ARM_SLOW_SPEED
-        if(currentArmState == GlyphArmState.START || currentArmState == GlyphArmState.FRONT_PICKUP)
+        if(currentArmState == GlyphArmState.FRONT_PICKUP)
         {
             if(robot.glyphArmMotor1.getCurrentPosition() <= GLYPH_ARM_SLOW_DIST)
             {
@@ -222,9 +244,65 @@ public class RRBotGlyphArm
         robot.glyphWristMotor.setPower(wristMotorSpeed);
     }
 
+    /*public void ArmAccelUpdate()
+    {
+        if(prevArmState != currentArmState)
+        {
+            if(prevArmState.isFrontPos() != currentArmState.isFrontPos())
+            {
+                int midPos = (currentArmState.getArmEncoderPos() + prevArmState.getArmEncoderPos()) / 2;
+
+                if(currentArmState.getArmEncoderPos() > prevArmState.getArmEncoderPos())
+                {
+                    if(accelTime.milliseconds() < ACCEL_TIME && robot.glyphArmMotor1.getCurrentPosition() < midPos)
+                    {
+                        armMotorSpeed += SPEED_INCREMENT;
+                    }
+                    else
+                    {
+                        if(!(hasCalcDeccelStartPos))
+                        {
+                            int afterAccelPos = robot.glyphArmMotor1.getCurrentPosition();
+                            deccelStartPos = currentArmState.getArmEncoderPos() - afterAccelPos;
+                            hasCalcDeccelStartPos = true;
+                        }
+
+                        if(robot.glyphArmMotor1.getCurrentPosition() >= deccelStartPos && armMotorSpeed > SPEED_INCREMENT)
+                        {
+                            armMotorSpeed -= SPEED_INCREMENT;
+                        }
+                    }
+                }
+                else
+                {
+                    if(accelTime.milliseconds() < ACCEL_TIME && robot.glyphArmMotor1.getCurrentPosition() > midPos)
+                    {
+                        armMotorSpeed += SPEED_INCREMENT;
+                    }
+                    else
+                    {
+                        if(!(hasCalcDeccelStartPos))
+                        {
+                            int afterAccelPos = robot.glyphArmMotor1.getCurrentPosition();
+                            deccelStartPos = currentArmState.getArmEncoderPos() - afterAccelPos;
+                            hasCalcDeccelStartPos = true;
+                        }
+
+                        if(robot.glyphArmMotor1.getCurrentPosition() >= deccelStartPos && armMotorSpeed > SPEED_INCREMENT)
+                        {
+                            armMotorSpeed -= SPEED_INCREMENT;
+                        }
+                    }
+                }
+            }
+        }
+    }*/
+
     //slowly move the arm to the start position, hit limit switch, and reset encoder
     public void HomeArm()
     {
+        MoveGlyphWristToState(GlyphWristState.START);
+
         //if limit switch is pressed, turn off arm motor and reset encoder
         if(getStartLimitState())
         {
@@ -321,7 +399,7 @@ public class RRBotGlyphArm
     public void ArmJoystickUpdate(double joystickValue)
     {
         //make sure that arm is not currently going to a set position
-        if(prevArmState == currentArmState)
+        if(prevArmState == currentArmState && robot.glyphArmMotor1.getCurrentPosition() > 0)
         {
             robot.glyphArmMotor1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             this.joystickValue = joystickValue;

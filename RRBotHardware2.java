@@ -20,7 +20,6 @@ public class RRBotHardware2
     public DcMotor frontRightMotor = null;
     public DcMotor frontLeftMotor = null;
     public DcMotor glyphArmMotor1 = null;
-    //public DcMotor glyphArmMotor2 = null;
     public DcMotor glyphWristMotor = null;
     public Servo jewelArmServo1 = null;
     public Servo jewelArmServo2 = null;

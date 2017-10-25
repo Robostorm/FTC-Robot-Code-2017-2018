@@ -23,7 +23,7 @@ public class MotorTestTeleop extends OpMode
     private final double GLYPH_ARM_MAX_SPEED = 1.0;
     private final int ACCEL_TIME = 2500;
     private final double SPEED_INCREMENT = GLYPH_ARM_MAX_SPEED / (ACCEL_TIME / GLYPH_ARM_SPEED_UPDATE_MILLIS);
-    private GlyphArmState prevArmState = GlyphArmState.START;
+    private GlyphArmState prevArmState = GlyphArmState.FRONT_PICKUP;
     private GlyphArmState currentArmState = GlyphArmState.FRONT2;
     private double armMotorSpeed = 0;
     int deccelStartPos;

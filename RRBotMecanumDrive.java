@@ -6,21 +6,29 @@ package org.firstinspires.ftc.teamcode;
 
 public class RRBotMecanumDrive
 {
-    RRBotHardware2 robot;
+    RRBotHardware robot;
 
     //constructor gets hardware object from teleop class when it is constructed
-    public RRBotMecanumDrive(RRBotHardware2 robot)
+    public RRBotMecanumDrive(RRBotHardware robot)
     {
         this.robot = robot;
     }
 
-    public void setMotorPower(double joyLX, double joyLY, double joyRX, double joyRY)
+    public double[] calcVelocities(double moveX, double moveY, double turn, double highSpeed, boolean doFunction)
     {
+        double leftX = moveX;
+        double leftY = moveY;
+        double rightX = turn;
+        double rightY = highSpeed;
+
         //remap input values using a function
-        double leftX = inputFunction(joyLX);
-        double leftY = inputFunction(-joyLY);
-        double rightX = inputFunction(joyRX);
-        double rightY = inputFunction(-joyRY);
+        if(doFunction)
+        {
+            leftX = inputFunction(moveX);
+            leftY = inputFunction(moveY);
+            rightX = inputFunction(turn);
+            rightY = inputFunction(highSpeed);
+        }
 
         //calculate the magnitude of the vector
         double r = Math.hypot(leftX, leftY);
@@ -34,16 +42,35 @@ public class RRBotMecanumDrive
         final double v3 = r * Math.sin(robotAngle) + rightX + rightY;
         final double v4 = r * Math.cos(robotAngle) - rightX + rightY;
 
+        double[] velocities = {v1, v2, v3, v4};
+        return velocities;
+    }
+
+    public void setMotorPower(double moveX, double moveY, double turn, double highSpeed, boolean doFunction)
+    {
+        double[] velocities = calcVelocities(moveX, moveY, turn, highSpeed, doFunction);
+
         //set the motor power
-        robot.frontLeftMotor.setPower(v1);
-        robot.frontRightMotor.setPower(v2);
-        robot.rearLeftMotor.setPower(v3);
-        robot.rearRightMotor.setPower(v4);
+        robot.frontLeftMotor.setPower(velocities[0]);
+        robot.frontRightMotor.setPower(velocities[1]);
+        robot.rearLeftMotor.setPower(velocities[2]);
+        robot.rearRightMotor.setPower(velocities[3]);
     }
 
     public double inputFunction(double input)
     {
         //f(x) = x^3
         return (input * input * input);
+
+        //f(x) = x^2
+        /*double value = input * input;
+        if(input < 0)
+        {
+            return value * -1;
+        }
+        else
+        {
+            return value;
+        }*/
     }
 }

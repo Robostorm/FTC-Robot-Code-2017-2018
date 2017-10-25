@@ -15,12 +15,12 @@ import com.qualcomm.robotcore.util.Range;
 public class RRBotTeleop extends OpMode
 {
     //construct an RRBotHardware object to reference its stuff
-    RRBotHardware2 robot = new RRBotHardware2();
+    RRBotHardware robot = new RRBotHardware();
     RRBotMecanumDrive drive = new RRBotMecanumDrive(robot);
     RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot);
     
     private final double GAMEPAD_TRIGGER_THRESHOLD = 0.3;
-    private final double JOYSTICK_DEADZONE = 0.1;
+    private final double JOYSTICK_DEADZONE = 0.3;
     private boolean prevGrabberOpenButton = false;
     private boolean prevGrabberReleaseButton = false;
     private boolean prevWristButton = false;
@@ -57,9 +57,15 @@ public class RRBotTeleop extends OpMode
         Telemetry();
     }
 
+    @Override
+    public void stop()
+    {
+        robot.servoPowerModule.setPower(0);
+    }
+
     public void DriveUpdate()
     {
-        drive.setMotorPower(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, gamepad1.right_stick_y);
+        drive.setMotorPower(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, -gamepad1.right_stick_y, true);
     }
 
     public void JewelArmUpdate()
@@ -91,7 +97,7 @@ public class RRBotTeleop extends OpMode
             //move the glyph arm to a certain state when a button is pressed
             if(gamepad2.start)
             {
-                glyphArm.MoveGlyphArmToState(GlyphArmState.START);
+                glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
                 glyphArm.MoveGlyphWristToState(GlyphWristState.START);
             }
             else if(gamepad2.right_bumper)
@@ -101,6 +107,10 @@ public class RRBotTeleop extends OpMode
             else if(gamepad2.left_bumper)
             {
                 glyphArm.MoveGlyphArmToState(GlyphArmState.BACK_PICKUP);
+            }
+            else if(gamepad2.right_stick_button)
+            {
+                glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP_2);
             }
             else if(gamepad2.a)
             {
@@ -184,12 +194,12 @@ public class RRBotTeleop extends OpMode
             }
 
             //open/close relic grabber when right bumper is pressed, only detects rising edge of button press
-            if(gamepad2.right_bumper && !prevRelicGrabberButton)
+            if((gamepad1.right_bumper || gamepad2.right_bumper) && !prevRelicGrabberButton)
             {
                 prevRelicGrabberButton = true;
                 glyphArm.MoveRelicGrabber();
             }
-            if(!gamepad2.right_bumper)
+            if(!(gamepad1.right_bumper || gamepad2.right_bumper))
             {
                 prevRelicGrabberButton = false;
             }
@@ -198,13 +208,13 @@ public class RRBotTeleop extends OpMode
         //if y axis of left joystick is outside the deadzone, EnableArmJoystick is called, which enables the arm to be moved via joystick
         if(Math.abs(gamepad2.left_stick_y) > JOYSTICK_DEADZONE)
         {
-            glyphArm.EnableArmJoystick(-gamepad2.left_stick_y);
+            glyphArm.EnableArmJoystick(gamepad2.left_stick_y);
         }
 
         //if y axis of right joystick is outside deadzone, EnableWristJoystick is called, which enables the arm to be moved via joystick
         if(Math.abs(gamepad2.right_stick_y) > JOYSTICK_DEADZONE)
         {
-            glyphArm.EnableWristJoystick(-gamepad2.right_stick_y);
+            glyphArm.EnableWristJoystick(gamepad2.right_stick_y);
         }
     }
 
