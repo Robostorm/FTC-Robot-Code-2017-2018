@@ -12,8 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * This class can be used to define all the specific hardware for a single robot.
  * In this case that robot is a 4WheelBot.
  */
-public class HardwareTetrixBot
-{
+public class HardwareTetrixBot {
     /* Public OpMode members. */
     public DcMotor rearLeftMotor = null;
     public DcMotor rearRightMotor = null;
@@ -24,38 +23,57 @@ public class HardwareTetrixBot
     //public DistanceSensor distSensor = null;
 
     /* local OpMode members. */
-    HardwareMap hwMap           =  null;
-    private ElapsedTime period  = new ElapsedTime();
+    HardwareMap hwMap = null;
+    private ElapsedTime period = new ElapsedTime();
 
     /* Constructor */
-    public HardwareTetrixBot(){}
+    public HardwareTetrixBot() {
+    }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap)
-    {
+    public void init(HardwareMap ahwMap) {
         // Save reference to Hardware map
         hwMap = ahwMap;
 
         // Define and Initialize Motors
-        rearLeftMotor   = hwMap.dcMotor.get("rear_left");
-        rearRightMotor  = hwMap.dcMotor.get("rear_right");
-        // Define distance Sensor
+        rearLeftMotor = hwMap.dcMotor.get("rear_left");
+        rearRightMotor = hwMap.dcMotor.get("rear_right");
+        frontLeftMotor = hwMap.dcMotor.get("front_left");
+        frontRightMotor = hwMap.dcMotor.get("front_right");
 
         //drive forewards
         rearLeftMotor.setDirection(DcMotor.Direction.REVERSE);
-        rearRightMotor.setDirection(DcMotor.Direction.FORWARD);}
+        rearRightMotor.setDirection(DcMotor.Direction.FORWARD);
+        rearLeftMotor.setDirection(DcMotor.Direction.REVERSE);
+        rearRightMotor.setDirection(DcMotor.Direction.FORWARD);
 
-    // Set all motors to zero power
-       // rearLeftMotor.setPower(0);
-       // rearRightMotor.setPower(0);
+        // sets motors to run with encoder correction
+        rearLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-//sets motors to run with encoder correction
-        //rearLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //rearRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //set motors to run without encoder guidance
+        rearLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rearRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+        // Set all motors to zero power
+        rearLeftMotor.setPower(0);
+        rearRightMotor.setPower(0);
+        frontLeftMotor.setPower(0);
+        frontRightMotor.setPower(0);
 
         //sets motors to brake mode
-        //rearLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        //rearRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rearLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rearRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+
+
+
+
+
 
         //drive backwards
         /*rearLeftMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -68,16 +86,6 @@ public class HardwareTetrixBot
         //color sensor
         //colorSensor = hwMap.colorSensor.get("color_sensor");
         //distSensor = hwMap.DistanceSensor.get("color_sensor");
-
-
-
-        //set motors to run without encoder guidance
-        /*rearLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rearRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-
-
-
 
         //sets motors to coast mode
         /*rearLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);

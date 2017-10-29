@@ -45,6 +45,8 @@ public class TetrixBotTeleopTank extends OpMode
         right = -gamepad1.right_stick_y;
         robot.rearLeftMotor.setPower(left);
         robot.rearRightMotor.setPower(right);
+        robot.frontLeftMotor.setPower(left);
+        robot.frontRightMotor.setPower(right);
 
         // Send telemetry message to signify robot running;
         telemetry.addData("left",  "%.2f", left);
