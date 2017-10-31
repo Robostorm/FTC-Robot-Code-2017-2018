@@ -97,8 +97,7 @@ public class RRBotTeleop extends OpMode
             //move the glyph arm to a certain state when a button is pressed
             if(gamepad2.start)
             {
-                glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
-                glyphArm.MoveGlyphWristToState(GlyphWristState.START);
+                glyphArm.MoveToStartPos();
             }
             else if(gamepad2.right_bumper)
             {

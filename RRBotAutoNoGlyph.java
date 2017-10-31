@@ -15,22 +15,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import java.util.Locale;
 
 /**
- * Created by andrew on 9/10/17.
+ * Created by andrew on 10/25/17.
  */
 
-//Autonomous OpMode for Relic Recovery robot (there will probably be more OpModes)
-//Currently uses vuforia to determine which pictograph image is displayed
+//Autonomous OpMode for Relic Recovery robot that runs jewel arm and drives to safe zone
 
-@Autonomous(name = "RRBotAuto")
-public class RRBotAuto extends LinearOpMode
+@Autonomous(name = "RRBotAutoNoGlyph")
+public class RRBotAutoNoGlyph extends LinearOpMode
 {
     RRBotHardware robot = new RRBotHardware();
     RRBotMecanumDrive drive = new RRBotMecanumDrive(robot);
-    RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot);
     private ElapsedTime runtime = new ElapsedTime();
-    
-    //constructs vuforia object
-    RRBotVuforiaClass vuforia = new RRBotVuforiaClass();
 
     //gyro variables
     private BNO055IMU imu;
@@ -42,11 +37,8 @@ public class RRBotAuto extends LinearOpMode
     private final double JEWEL_ARM_SERVO_2_RIGHT_POS = 0.9;
     private final String JEWEL_ARM_COLOR_SENSOR_DIRECTION = "forwards";
     private String allianceColor;
-    private final double JEWEL_TURN_SPEED = 0.3;
-    private final int TURN_ANGLE = 25;
     private String ballColor = "unknown";
-    private String origTurnDirection = null;
-    
+
     private int fieldPos = 0; //position 0 has a cryoptobox on one side, position 1 has cyroptoboxes on both sides
     private final double DISTANCE_TO_SAFE_ZONE_1 = 34;
     private final double DISTANCE_TO_SAFE_ZONE_2_1 = 24;
@@ -57,36 +49,13 @@ public class RRBotAuto extends LinearOpMode
     private final double DRIVE_GEAR_REDUCTION = 2.0 ;     // This is < 1.0 if geared UP
     private final double WHEEL_DIAMETER_INCHES = 4.0 ;     // For figuring circumference
     private final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    private final double SAFE_ZONE_DRIVE_SPEED = 0.5;
+    private final double SAFE_ZONE_DRIVE_SPEED = 0.25;
     private final double SAFE_ZONE_TURN_SPEED = 0.5;
-
-    private final double GLYPH_PLACE_DRIVE_SPEED = 0.5;
-    private final double GLYPH_PLACE_DRIVE_SPEED_MECANUM = 1;
-    private final double GLYPH_PLACE_TURN_SPEED = 0.5;
-    private final int TURN_45 = TURN_90 / 2 - 15;
-
-    private final double GLYPH_PLACE_DISTANCE_0_1_LEFT = 38;
-    private final double GLYPH_PLACE_DISTANCE_0_1_CENTER = 32;
-    private final double GLYPH_PLACE_DISTANCE_0_1_RIGHT = 26;
-    private final double GLYPH_PLACE_DISTANCE_0_2 = 5;
-    private final double GLYPH_PLACE_DISTANCE_0_3 = 4;
-
-    private final double GLYPH_PLACE_DISTANCE_1_1 = 24;
-    private final double GLYPH_PLACE_DISTANCE_1_2_LEFT = 20;
-    private final double GLYPH_PLACE_DISTANCE_1_2_CENTER = 30;
-    private final double GLYPH_PLACE_DISTANCE_1_2_RIGHT = 37;
-    private final double GLYPH_PLACE_DISTANCE_1_3 = 5;
-    private final double GLYPH_PLACE_DISTANCE_1_4 = 4;
-
-    private final double POSITION_THRESHOLD = 5;
-
 
     @Override
     public void runOpMode()
     {
         robot.init(hardwareMap);
-
-        vuforia.Init_Vuforia();
 
         //gyro initialization
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -98,17 +67,6 @@ public class RRBotAuto extends LinearOpMode
         imu.initialize(parameters);
 
         waitForStart();
-
-        //VMark pictograph detection test
-        /*while(opModeIsActive())
-        {
-            vuforia.Track_Target();
-            if(vuforia.isVisible)
-                telemetry.addData("Pictograph", vuforia.target_name);
-            else
-                telemetry.addData("Pictograph", "not visible");
-            telemetry.update();
-        }*/
 
         if(robot.allianceColorSwitch.getState())
             allianceColor = "red";
@@ -132,20 +90,9 @@ public class RRBotAuto extends LinearOpMode
 
         //color sensor determines color of ball
         if (robot.jewelArmColor.blue() > robot.jewelArmColor.red())
-                ballColor = "blue";
-            else if (robot.jewelArmColor.blue() < robot.jewelArmColor.red())
-                ballColor = "red";
-
-        /*while(opModeIsActive())
-        {
-            if (robot.jewelArmColor.blue() > robot.jewelArmColor.red())
-                ballColor = "blue";
-            else if (robot.jewelArmColor.blue() < robot.jewelArmColor.red())
-                ballColor = "red";
-
-            telemetry.addData("ballColor", ballColor);
-            telemetry.update();
-        }*/
+            ballColor = "blue";
+        else if (robot.jewelArmColor.blue() < robot.jewelArmColor.red())
+            ballColor = "red";
 
         //logic to determine whether to knock the ball infront or behind
         if(!(ballColor.equals("unknown")))
@@ -208,31 +155,10 @@ public class RRBotAuto extends LinearOpMode
 
         MoveJewelArm("up");
 
-        //sleep(3000);
-
-        /*if(!ballColor.equals("unknown"))
-        {
-            if(origTurnDirection.equals("left"))
-            {
-                TurnByGyro("right", TURN_ANGLE, JEWEL_TURN_SPEED);
-            }
-            else if(origTurnDirection.equals("right"))
-            {
-                TurnByGyro("left", TURN_ANGLE, JEWEL_TURN_SPEED);
-            }
-        }*/
-
-        sleep(250);
-
-        while(!glyphArm.hasHomed())
-        {
-            glyphArm.HomeArm();
-        }
-
         sleep(250);
 
         //Move to safe zone using encoders and gyro
-        /*if(allianceColor.equals("red"))
+        if(allianceColor.equals("red"))
         {
             if (fieldPos == 0)
             {
@@ -267,100 +193,11 @@ public class RRBotAuto extends LinearOpMode
                 EncoderDriveTank(SAFE_ZONE_DRIVE_SPEED, DISTANCE_TO_SAFE_ZONE_2_2, DISTANCE_TO_SAFE_ZONE_2_2, 5);
                 TurnByGyro("left", TURN_90, SAFE_ZONE_TURN_SPEED);
             }
-        }*/
-
-
-        RelicRecoveryVuMark pictograph = ScanPictograph(500);
-
-        if(allianceColor.equals("red"))
-        {
-            if(fieldPos == 0)
-            {
-                if(pictograph == RelicRecoveryVuMark.CENTER)
-                {
-                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_0_1_CENTER, GLYPH_PLACE_DISTANCE_0_1_CENTER, 5);
-                }
-                else if(pictograph == RelicRecoveryVuMark.RIGHT)
-                {
-                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_0_1_RIGHT, GLYPH_PLACE_DISTANCE_0_1_RIGHT, 5);
-                }
-                else
-                {
-                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_0_1_LEFT, GLYPH_PLACE_DISTANCE_0_1_LEFT, 5);
-                }
-
-                TurnByGyro("right", TURN_45, GLYPH_PLACE_TURN_SPEED);
-
-                glyphArm.UpdateValues();
-                glyphArm.FlipWrist();
-
-                sleep(500);
-
-                EncoderDriveMecanum(GLYPH_PLACE_DRIVE_SPEED_MECANUM, GLYPH_PLACE_DRIVE_SPEED_MECANUM, GLYPH_PLACE_DISTANCE_0_2, 5);
-
-                glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.3);
-
-                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_0_3, GLYPH_PLACE_DISTANCE_0_3, 2);
-
-                sleep(500);
-
-                glyphArm.UpdateValues();
-                glyphArm.MoveGlyphWristToState(GlyphWristState.START);
-            }
-            else if(fieldPos == 1)
-            {
-                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_1_1, GLYPH_PLACE_DISTANCE_1_1, 5);
-
-                if(pictograph == RelicRecoveryVuMark.CENTER)
-                {
-                    EncoderDriveMecanum(-GLYPH_PLACE_DRIVE_SPEED_MECANUM, 0, GLYPH_PLACE_DISTANCE_1_2_CENTER, 5);
-                }
-                else if(pictograph == RelicRecoveryVuMark.RIGHT)
-                {
-                    EncoderDriveMecanum(-GLYPH_PLACE_DRIVE_SPEED_MECANUM, 0, GLYPH_PLACE_DISTANCE_1_2_RIGHT, 5);
-                }
-                else
-                {
-                    EncoderDriveMecanum(-GLYPH_PLACE_DRIVE_SPEED_MECANUM, 0, GLYPH_PLACE_DISTANCE_1_2_LEFT, 5);
-                }
-
-                TurnByGyro("right", TURN_45, GLYPH_PLACE_TURN_SPEED);
-
-                glyphArm.UpdateValues();
-                glyphArm.FlipWrist();
-
-                sleep(500);
-
-                EncoderDriveMecanum(-GLYPH_PLACE_DRIVE_SPEED_MECANUM, GLYPH_PLACE_DRIVE_SPEED_MECANUM, GLYPH_PLACE_DISTANCE_1_3, 5);
-
-                glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.3);
-
-                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_1_4, -GLYPH_PLACE_DISTANCE_1_4, 2);
-
-                sleep(500);
-
-                glyphArm.UpdateValues();
-                glyphArm.MoveGlyphWristToState(GlyphWristState.START);
-            }
-        }
-        else if(allianceColor.equals("blue"))
-        {
-            if(fieldPos == 0)
-            {
-
-            }
-            else if(fieldPos == 1)
-            {
-
-            }
         }
 
-        sleep(1000);
         robot.servoPowerModule.setPower(0);
     }
-    
+
     public void MoveJewelArm(String direction)
     {
         if(direction.equals("down"))
@@ -368,7 +205,7 @@ public class RRBotAuto extends LinearOpMode
             double servoPos = robot.JEWEL_ARM_SERVO_1_START_POS;
             while(opModeIsActive() && servoPos > JEWEL_ARM_SERVO_1_END_POS)
             {
-                servoPos -= 0.03; //was 0.01
+                servoPos -= 0.05; //was 0.01
                 robot.jewelArmServo1.setPosition(servoPos);
                 sleep(50);
             }
@@ -378,7 +215,7 @@ public class RRBotAuto extends LinearOpMode
             double servoPos = JEWEL_ARM_SERVO_1_END_POS;
             while(opModeIsActive() && servoPos < robot.JEWEL_ARM_SERVO_1_START_POS)
             {
-                servoPos += 0.03; //was 0.01
+                servoPos += 0.05; //was 0.01
                 robot.jewelArmServo1.setPosition(servoPos);
                 sleep(50);
             }
@@ -395,7 +232,7 @@ public class RRBotAuto extends LinearOpMode
         telemetry.addData("knock ball", "infront");
         telemetry.update();
     }
-    
+
     public void KnockBallBehind()
     {
         //origTurnDirection = "right";
@@ -406,12 +243,12 @@ public class RRBotAuto extends LinearOpMode
         telemetry.addData("knock ball", "behind");
         telemetry.update();
     }
-    
+
     public void TurnByGyro(String direction, int angle, double speed)
     {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         float startHeading = angles.firstAngle;
-        
+
         if(direction.equals("left"))
         {
             robot.rearRightMotor.setPower(speed);
@@ -433,10 +270,10 @@ public class RRBotAuto extends LinearOpMode
             telemetry.addData("heading", formatAngle(AngleUnit.DEGREES, angles.firstAngle));
             telemetry.update();
         }
-        
+
         TurnOffMotors();
     }
-    
+
     public void EncoderDriveTank(double speed, double leftInches, double rightInches, double timeoutS)
     {
         robot.rearLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -449,7 +286,7 @@ public class RRBotAuto extends LinearOpMode
         robot.rearRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        
+
         int newRearLeftTarget;
         int newRearRightTarget;
         int newFrontLeftTarget;
@@ -505,109 +342,6 @@ public class RRBotAuto extends LinearOpMode
             robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
-    }
-
-    public void EncoderDriveMecanum(double speedX, double speedY, double distance, double timeoutS)
-    {
-        robot.rearLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.rearRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        idle();
-
-        robot.rearLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rearRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        int newRearLeftTarget;
-        int newRearRightTarget;
-        int newFrontLeftTarget;
-        int newFrontRightTarget;
-
-        double[] velocities = drive.calcVelocities(speedX, speedY, 0, 0, false);
-
-        // Ensure that the opmode is still active
-        if(opModeIsActive())
-        {
-            // Determine new target position, and pass to motor controller
-            newRearLeftTarget = robot.rearLeftMotor.getCurrentPosition() + (int) (velocities[2] * distance * Math.sqrt(2) * COUNTS_PER_INCH);
-            newRearRightTarget = robot.rearRightMotor.getCurrentPosition() + (int) (velocities[3] * distance * Math.sqrt(2) * COUNTS_PER_INCH);
-            newFrontLeftTarget = robot.frontLeftMotor.getCurrentPosition() + (int) (velocities[0] * distance * Math.sqrt(2) * COUNTS_PER_INCH);
-            newFrontRightTarget = robot.frontRightMotor.getCurrentPosition() + (int) (velocities[1] * distance * Math.sqrt(2) * COUNTS_PER_INCH);
-            robot.rearLeftMotor.setTargetPosition(newRearLeftTarget);
-            robot.rearRightMotor.setTargetPosition(newRearRightTarget);
-            robot.frontLeftMotor.setTargetPosition(newFrontLeftTarget);
-            robot.frontRightMotor.setTargetPosition(newFrontRightTarget);
-
-            // Turn On RUN_TO_POSITION
-            robot.rearLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.rearRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // reset the timeout time and start motion.
-            runtime.reset();
-            robot.rearLeftMotor.setPower(Math.abs(velocities[2]));
-            robot.rearRightMotor.setPower(Math.abs(velocities[3]));
-            robot.frontLeftMotor.setPower(Math.abs(velocities[0]));
-            robot.frontRightMotor.setPower(Math.abs(velocities[1]));
-
-            // keep looping while we are still active, and there is time left, and both motors are running.
-            /*while (opModeIsActive() &&
-                    (runtime.seconds() < timeoutS) &&
-                    (robot.rearLeftMotor.isBusy() || robot.rearRightMotor.isBusy() || robot.frontLeftMotor.isBusy() || robot.frontRightMotor.isBusy()))
-            {*/
-            while (opModeIsActive() && (runtime.seconds() < timeoutS) &&
-                    ((Math.abs(robot.rearLeftMotor.getCurrentPosition() - newRearLeftTarget) > POSITION_THRESHOLD) ||
-                    (Math.abs(robot.rearRightMotor.getCurrentPosition() - newRearRightTarget) > POSITION_THRESHOLD) ||
-                    (Math.abs(robot.frontLeftMotor.getCurrentPosition() - newFrontLeftTarget) > POSITION_THRESHOLD) ||
-                    (Math.abs(robot.frontRightMotor.getCurrentPosition() - newFrontRightTarget) > POSITION_THRESHOLD)))
-            {
-
-                // Display it for the driver.
-                telemetry.addData("Path1", "Running to %7d :%7d", newRearLeftTarget, newRearRightTarget, newFrontLeftTarget, newFrontRightTarget);
-                telemetry.addData("Path2", "Running at %7d :%7d",
-                        robot.rearLeftMotor.getCurrentPosition(),
-                        robot.rearRightMotor.getCurrentPosition(),
-                        robot.frontLeftMotor.getCurrentPosition(),
-                        robot.frontRightMotor.getCurrentPosition());
-                telemetry.update();
-            }
-
-            TurnOffMotors();
-
-            // Turn off RUN_TO_POSITION
-            robot.rearLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.rearRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-    }
-
-    public RelicRecoveryVuMark ScanPictograph(int time)
-    {
-        RelicRecoveryVuMark pictograph = RelicRecoveryVuMark.UNKNOWN;
-
-        runtime.reset();
-        while(opModeIsActive() && runtime.milliseconds() < time)
-        {
-            vuforia.Track_Target();
-
-            if(vuforia.isVisible)
-            {
-                pictograph = vuforia.target_name;
-                telemetry.addData("Pictograph", vuforia.target_name);
-            }
-            else
-            {
-                pictograph = RelicRecoveryVuMark.UNKNOWN;
-                telemetry.addData("Pictograph", "not visible");
-            }
-            telemetry.update();
-        }
-
-        return pictograph;
     }
 
     public void TurnOffMotors()

@@ -31,8 +31,8 @@ public class RRBotGlyphArm
     private final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.2; //was .35
     private final double RELIC_INIT_SERVO_RELICMODE_POS = 0.6; //was .76
     private final double RELIC_GRABBER_OPEN_POS = 0;
-    private final double RELIC_GRABBER_CLOSE_POS = 0.8;
-    private final double RELIC_MODE_ARM_SPEED = 0.6;
+    private final double RELIC_GRABBER_CLOSE_POS = 0.85;
+    private final double RELIC_MODE_ARM_SPEED = 0.7;
     private final double RELIC_MODE_WRIST_SPEED = 0.3;
     private final int ARM_JOYSTICK_INCREMENT = 40;
     private final int WRIST_JOYSTICK_INCREMENT = 70;
@@ -317,6 +317,15 @@ public class RRBotGlyphArm
             robot.glyphArmMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             robot.glyphArmMotor1.setPower(-HOME_ARM_SPEED);
         }
+    }
+
+    public void MoveToStartPos()
+    {
+        robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+
+        MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
+        MoveGlyphWristToState(GlyphWristState.START);
     }
 
     public void ToggleRelicMode()
