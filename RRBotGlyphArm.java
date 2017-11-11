@@ -20,14 +20,14 @@ public class RRBotGlyphArm
     private final double GLYPH_WRIST_SPEED = 1;
     private final double GRABBER_OPEN_POS = 0.8;
     private final double GRABBER_CLOSE_POS = 0.15;
-    private final double GRABBER_RELEASE_POS = 0.3;
+    private final double GRABBER_RELEASE_POS = 0.4;
     private final double GLYPH_ARM_MAX_SPEED = 0.6;
     private final double GLYPH_ARM_SLOW_SPEED = 0.2;
     private final double GLYPH_ARM_SLOW_DIST = 300;
     private final double HOME_ARM_SPEED = 0.2;
     private final double GLYPH_ARM_FAST_SPEED = 0.8;
-    private final int ARM_POS_THRESHOLD = 50;
-    private final int WRIST_POS_THRESHOLD = 30;
+    private final int ARM_POS_THRESHOLD = 70;
+    private final int WRIST_POS_THRESHOLD = 50;
     private final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.2; //was .35
     private final double RELIC_INIT_SERVO_RELICMODE_POS = 0.6; //was .76
     private final double RELIC_GRABBER_OPEN_POS = 0;

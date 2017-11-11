@@ -56,12 +56,14 @@ public class RRBotAutoGlyph extends LinearOpMode
     private final double GLYPH_PLACE_TURN_SPEED = 0.5;
     private final int TURN_45_0 = 45;
     private final int TURN_45_1 = TURN_90 / 2 - 15;
-    private final int TURN_135 = 135;
+    private final int TURN_135 = 135 - 15;
+    private final int TURN_135_B = 135;
 
     private final double GLYPH_PLACE_DISTANCE_0_1_LEFT = 27.5;
-    private final double GLYPH_PLACE_DISTANCE_0_1_CENTER = 30; //was 19.5
-    private final double GLYPH_PLACE_DISTANCE_0_1_RIGHT = 50; //28
+    private final double GLYPH_PLACE_DISTANCE_0_1_CENTER = 45; //was 30
+    private final double GLYPH_PLACE_DISTANCE_0_1_RIGHT = 39; //28
     private final double GLYPH_PLACE_DISTANCE_0_2 = 9;
+    private final double GLYPH_PLACE_DISTANCE_0_2_alt = 9;
     private final double GLYPH_PLACE_DISTANCE_0_3 = 3;
 
     private final double GLYPH_PLACE_DISTANCE_1_1 = 24;
@@ -70,6 +72,20 @@ public class RRBotAutoGlyph extends LinearOpMode
     private final double GLYPH_PLACE_DISTANCE_1_2_RIGHT = 3.75;
     private final double GLYPH_PLACE_DISTANCE_1_3 = 6;
     private final double GLYPH_PLACE_DISTANCE_1_4 = 3;
+
+    private final double GLYPH_PLACE_DISTANCE_B_0_1_RIGHT = 30;
+    private final double GLYPH_PLACE_DISTANCE_B_0_1_CENTER = 46; //was 30
+    private final double GLYPH_PLACE_DISTANCE_B_0_1_LEFT = 40; //28
+    private final double GLYPH_PLACE_DISTANCE_B_0_2 = 9;
+    private final double GLYPH_PLACE_DISTANCE_B_0_2_alt = 9;
+    private final double GLYPH_PLACE_DISTANCE_B_0_3 = 3;
+
+    private final double GLYPH_PLACE_DISTANCE_B_1_1 = 27; //was 24
+    private final double GLYPH_PLACE_DISTANCE_B_1_2_RIGHT = -5;
+    private final double GLYPH_PLACE_DISTANCE_B_1_2_CENTER = 0;
+    private final double GLYPH_PLACE_DISTANCE_B_1_2_LEFT = 5.5;
+    private final double GLYPH_PLACE_DISTANCE_B_1_3 = 6;
+    private final double GLYPH_PLACE_DISTANCE_B_1_4 = 3;
 
     @Override
     public void runOpMode()
@@ -195,15 +211,15 @@ public class RRBotAutoGlyph extends LinearOpMode
             {
                 if(pictograph == RelicRecoveryVuMark.CENTER)
                 {
-                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, GLYPH_PLACE_DISTANCE_0_1_CENTER, GLYPH_PLACE_DISTANCE_0_1_CENTER, 7);
+                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, GLYPH_PLACE_DISTANCE_0_1_CENTER, GLYPH_PLACE_DISTANCE_0_1_CENTER, 30);
                 }
                 else if(pictograph == RelicRecoveryVuMark.RIGHT)
                 {
-                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, GLYPH_PLACE_DISTANCE_0_1_RIGHT, GLYPH_PLACE_DISTANCE_0_1_RIGHT, 10);
+                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, GLYPH_PLACE_DISTANCE_0_1_RIGHT, GLYPH_PLACE_DISTANCE_0_1_RIGHT, 30);
                 }
                 else
                 {
-                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, GLYPH_PLACE_DISTANCE_0_1_LEFT, GLYPH_PLACE_DISTANCE_0_1_LEFT, 7);
+                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, GLYPH_PLACE_DISTANCE_0_1_LEFT, GLYPH_PLACE_DISTANCE_0_1_LEFT, 30);
                 }
 
                 if(pictograph == RelicRecoveryVuMark.RIGHT || pictograph == RelicRecoveryVuMark.CENTER)
@@ -220,10 +236,17 @@ public class RRBotAutoGlyph extends LinearOpMode
 
                 sleep(500);
 
-                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_0_2, GLYPH_PLACE_DISTANCE_0_2, 5);
+                if(pictograph == RelicRecoveryVuMark.LEFT)
+                {
+                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_0_2, GLYPH_PLACE_DISTANCE_0_2, 5);
+                }
+                else
+                {
+                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_0_2_alt, GLYPH_PLACE_DISTANCE_0_2_alt, 5);
+                }
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.3);
+                robot.grabber1Servo.setPosition(0.4);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_0_3, -GLYPH_PLACE_DISTANCE_0_3, 2);
 
@@ -259,7 +282,7 @@ public class RRBotAutoGlyph extends LinearOpMode
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_1_3, GLYPH_PLACE_DISTANCE_1_3, 5);
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.3);
+                robot.grabber1Servo.setPosition(0.4);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_1_4, -GLYPH_PLACE_DISTANCE_1_4, 2);
 
@@ -275,15 +298,15 @@ public class RRBotAutoGlyph extends LinearOpMode
             {
                 if(pictograph == RelicRecoveryVuMark.CENTER)
                 {
-                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, -GLYPH_PLACE_DISTANCE_0_1_CENTER, -GLYPH_PLACE_DISTANCE_0_1_CENTER, 7);
+                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, -GLYPH_PLACE_DISTANCE_B_0_1_CENTER, -GLYPH_PLACE_DISTANCE_B_0_1_CENTER, 7);
                 }
                 else if(pictograph == RelicRecoveryVuMark.RIGHT)
                 {
-                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, -GLYPH_PLACE_DISTANCE_0_1_RIGHT, -GLYPH_PLACE_DISTANCE_0_1_LEFT, 10);
+                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, -GLYPH_PLACE_DISTANCE_B_0_1_RIGHT, -GLYPH_PLACE_DISTANCE_B_0_1_RIGHT, 10);
                 }
                 else
                 {
-                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, -GLYPH_PLACE_DISTANCE_0_1_LEFT, -GLYPH_PLACE_DISTANCE_0_1_RIGHT, 7);
+                    EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, -GLYPH_PLACE_DISTANCE_B_0_1_LEFT, -GLYPH_PLACE_DISTANCE_B_0_1_LEFT, 7);
                 }
 
                 if(pictograph == RelicRecoveryVuMark.RIGHT)
@@ -300,12 +323,12 @@ public class RRBotAutoGlyph extends LinearOpMode
 
                 sleep(500);
 
-                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_0_2, GLYPH_PLACE_DISTANCE_0_2, 5);
+                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_B_0_2, GLYPH_PLACE_DISTANCE_B_0_2, 5);
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.3);
+                robot.grabber1Servo.setPosition(0.4);
 
-                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_0_3, -GLYPH_PLACE_DISTANCE_0_3, 2);
+                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_B_0_3, -GLYPH_PLACE_DISTANCE_B_0_3, 2);
 
                 sleep(300);
 
@@ -314,34 +337,34 @@ public class RRBotAutoGlyph extends LinearOpMode
             }
             else if(fieldPos == 1)
             {
-                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, -GLYPH_PLACE_DISTANCE_1_1, -GLYPH_PLACE_DISTANCE_1_1, 7);
+                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED_SLOW, -GLYPH_PLACE_DISTANCE_B_1_1, -GLYPH_PLACE_DISTANCE_B_1_1, 7);
 
                 if(pictograph == RelicRecoveryVuMark.CENTER)
                 {
-                    EncoderDriveSideways(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_1_2_CENTER, 5);
+                    EncoderDriveSideways(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_B_1_2_CENTER, 5);
                 }
                 else if(pictograph == RelicRecoveryVuMark.RIGHT)
                 {
-                    EncoderDriveSideways(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_1_2_LEFT, 5);
+                    EncoderDriveSideways(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_B_1_2_RIGHT, 5);
                 }
                 else
                 {
-                    EncoderDriveSideways(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_1_2_RIGHT, 5);
+                    EncoderDriveSideways(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_B_1_2_LEFT, 5);
                 }
 
-                TurnByGyro("left", TURN_135, GLYPH_PLACE_TURN_SPEED);
+                TurnByGyro("left", TURN_135_B, GLYPH_PLACE_TURN_SPEED);
 
                 glyphArm.UpdateValues();
                 glyphArm.FlipWrist();
 
                 sleep(500);
 
-                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_1_3, GLYPH_PLACE_DISTANCE_1_3, 5);
+                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_B_1_3, GLYPH_PLACE_DISTANCE_B_1_3, 5);
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.3);
+                robot.grabber1Servo.setPosition(0.4);
 
-                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_1_4, -GLYPH_PLACE_DISTANCE_1_4, 2);
+                EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_B_1_4, -GLYPH_PLACE_DISTANCE_B_1_4, 2);
 
                 sleep(300);
 

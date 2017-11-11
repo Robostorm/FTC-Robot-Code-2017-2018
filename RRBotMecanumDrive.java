@@ -30,6 +30,7 @@ public class RRBotMecanumDrive
             rightY = inputFunction(highSpeed);
         }
 
+        /*
         //calculate the magnitude of the vector
         double r = Math.hypot(leftX, leftY);
 
@@ -37,10 +38,45 @@ public class RRBotMecanumDrive
         double robotAngle = Math.atan2(leftY, leftX) - Math.PI / 4;
 
         //calculate the motor vectors and add rotation and right stick turbo
-        final double v1 = r * Math.cos(robotAngle) + rightX + rightY;
-        final double v2 = r * Math.sin(robotAngle) - rightX + rightY;
-        final double v3 = r * Math.sin(robotAngle) + rightX + rightY;
-        final double v4 = r * Math.cos(robotAngle) - rightX + rightY;
+        double v1 = r * Math.cos(robotAngle) + rightX + rightY;
+        double v2 = r * Math.sin(robotAngle) - rightX + rightY;
+        double v3 = r * Math.sin(robotAngle) + rightX + rightY;
+        double v4 = r * Math.cos(robotAngle) - rightX + rightY;*/
+
+        //experimental
+        /*v1 *= Math.sqrt(2);
+        v2 *= Math.sqrt(2);
+        v3 *= Math.sqrt(2);
+        v4 *= Math.sqrt(2);
+        if(v1 > 1)
+            v1 = 1;
+        if(v2 > 1)
+            v2 = 1;
+        if(v3 > 1)
+            v3 = 1;
+        if(v4 > 1)
+            v4 = 1;*/
+
+        double v1 = leftY + rightX + leftX + rightY;
+        double v2 = leftY - rightX - leftX + rightY;
+        double v3 = leftY + rightX - leftX + rightY;
+        double v4 = leftY - rightX + leftX + rightY;
+
+        double max = Math.abs(v1);
+        if(Math.abs(v2) > max)
+            max = Math.abs(v2);
+        if(Math.abs(v3) > max)
+            max = Math.abs(v3);
+        if(Math.abs(v4) > max)
+            max = Math.abs(v4);
+        if(max > 1)
+        {
+            v1 /= max;
+            v2 /= max;
+            v3 /= max;
+            v4 /= max;
+        }
+
 
         double[] velocities = {v1, v2, v3, v4};
         return velocities;
