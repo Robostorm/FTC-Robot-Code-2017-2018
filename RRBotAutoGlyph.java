@@ -25,7 +25,7 @@ public class RRBotAutoGlyph extends LinearOpMode
 {
     RRBotHardware robot = new RRBotHardware();
     RRBotMecanumDrive drive = new RRBotMecanumDrive(robot);
-    RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot);
+    RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot, drive);
     private ElapsedTime runtime = new ElapsedTime();
     
     //constructs vuforia object
@@ -246,7 +246,7 @@ public class RRBotAutoGlyph extends LinearOpMode
                 }
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.4);
+                robot.grabber1Servo.setPosition(0.5);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_0_3, -GLYPH_PLACE_DISTANCE_0_3, 2);
 
@@ -282,7 +282,7 @@ public class RRBotAutoGlyph extends LinearOpMode
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_1_3, GLYPH_PLACE_DISTANCE_1_3, 5);
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.4);
+                robot.grabber1Servo.setPosition(0.5);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_1_4, -GLYPH_PLACE_DISTANCE_1_4, 2);
 
@@ -326,7 +326,7 @@ public class RRBotAutoGlyph extends LinearOpMode
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_B_0_2, GLYPH_PLACE_DISTANCE_B_0_2, 5);
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.4);
+                robot.grabber1Servo.setPosition(0.5);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_B_0_3, -GLYPH_PLACE_DISTANCE_B_0_3, 2);
 
@@ -362,7 +362,7 @@ public class RRBotAutoGlyph extends LinearOpMode
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_B_1_3, GLYPH_PLACE_DISTANCE_B_1_3, 5);
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.4);
+                robot.grabber1Servo.setPosition(0.5);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_B_1_4, -GLYPH_PLACE_DISTANCE_B_1_4, 2);
 

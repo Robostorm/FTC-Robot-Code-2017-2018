@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -17,15 +18,16 @@ public class RRBotTeleop extends OpMode
     //construct an RRBotHardware object to reference its stuff
     RRBotHardware robot = new RRBotHardware();
     RRBotMecanumDrive drive = new RRBotMecanumDrive(robot);
-    RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot);
+    RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot, drive);
     
-    private final double GAMEPAD_TRIGGER_THRESHOLD = 0.3;
+    private final double GAMEPAD_TRIGGER_THRESHOLD = 0.2;
     private final double JOYSTICK_DEADZONE = 0.3;
     private boolean prevGrabberOpenButton = false;
     private boolean prevGrabberReleaseButton = false;
     private boolean prevWristButton = false;
     private boolean prevRelicModeButton = false;
     private boolean prevRelicGrabberButton = false;
+    private boolean prevAutoGrabberButton = false;
 
     @Override
     public void init()
@@ -65,7 +67,14 @@ public class RRBotTeleop extends OpMode
 
     public void DriveUpdate()
     {
-        drive.setMotorPower(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, -gamepad1.right_stick_y, true);
+        if(!drive.getIsAutoMove())
+        {
+            drive.setMotorPower(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, -gamepad1.right_stick_y, true);
+        }
+        else
+        {
+            drive.AutoMoveEndCheck();
+        }
     }
 
     public void JewelArmUpdate()
@@ -92,7 +101,7 @@ public class RRBotTeleop extends OpMode
             prevRelicModeButton = false;
         }
 
-        if(!glyphArm.isInRelicMode()) //glyph mode stuff
+        if(!glyphArm.isInRelicMode()) //not relic mode
         {
             //move the glyph arm to a certain state when a button is pressed
             if(gamepad2.start)
@@ -103,11 +112,7 @@ public class RRBotTeleop extends OpMode
             {
                 glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
             }
-            else if(gamepad2.left_bumper)
-            {
-                glyphArm.MoveGlyphArmToState(GlyphArmState.BACK_PICKUP);
-            }
-            else if(gamepad2.right_stick_button)
+            else if(gamepad2.dpad_down)
             {
                 glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP_2);
             }
@@ -127,7 +132,14 @@ public class RRBotTeleop extends OpMode
             {
                 glyphArm.MoveGlyphArmToState(GlyphArmState.FRONT4);
             }
-            else if(gamepad2.dpad_down)
+
+            //Run the auto glyph place routine when gamepad 1 right trigger is pressed
+            if(gamepad1.left_trigger > GAMEPAD_TRIGGER_THRESHOLD)
+            {
+                glyphArm.setIsAutoGlyphPlace(true);
+            }
+
+            /*else if(gamepad2.dpad_down)
             {
                 glyphArm.MoveGlyphArmToState(GlyphArmState.BACK1);
             }
@@ -142,7 +154,7 @@ public class RRBotTeleop extends OpMode
             else if(gamepad2.dpad_up)
             {
                 glyphArm.MoveGlyphArmToState(GlyphArmState.BACK4);
-            }
+            }*/
 
             //flip the wrist when right trigger is pressed, only detects rising edge of button press
             if(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD && !prevWristButton)
@@ -176,12 +188,32 @@ public class RRBotTeleop extends OpMode
             {
                 prevGrabberReleaseButton = false;
             }
+
+            //auto grabber close button code
+            if(gamepad1.right_trigger > GAMEPAD_TRIGGER_THRESHOLD)
+            {
+                glyphArm.AutoCloseGrabber();
+            }
+            if(gamepad1.right_trigger > GAMEPAD_TRIGGER_THRESHOLD && !prevAutoGrabberButton)
+            {
+                prevAutoGrabberButton = true;
+                glyphArm.setHasGrabberClosed(false);
+            }
+            if(!(gamepad1.right_trigger > GAMEPAD_TRIGGER_THRESHOLD))
+            {
+                prevAutoGrabberButton = false;
+            }
+
         }
         else //relic mode
         {
             if(gamepad2.a)
             {
-                glyphArm.MoveToRelicPickupPos();
+                glyphArm.MoveToRelicPickupPos(1);
+            }
+            else if(gamepad2.dpad_down)
+            {
+                glyphArm.MoveToRelicPickupPos(2);
             }
             else if(gamepad2.b)
             {
@@ -220,6 +252,8 @@ public class RRBotTeleop extends OpMode
     //debug values to be shown on driver station
     public void Telemetry()
     {
+        telemetry.addData("grabber1SwitchState", glyphArm.getGrabber1SwitchState());
+        telemetry.addData("grabber2SwitchState", glyphArm.getGrabber2SwitchState());
         telemetry.addData("ArmMotorPosition", glyphArm.getArmPos());
         telemetry.addData("WristMotorPosition", glyphArm.getWristPos());
         telemetry.addData("startLimit", glyphArm.getStartLimitState());

@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 /**
  * Created by andrew on 10/8/17.
  */
@@ -7,6 +10,15 @@ package org.firstinspires.ftc.teamcode;
 public class RRBotMecanumDrive
 {
     RRBotHardware robot;
+
+    private ElapsedTime autoMoveTime = new ElapsedTime();
+
+    private boolean isAutoMove = false;
+    private double autoTime;
+    private final double COUNTS_PER_MOTOR_REV = 560 ;    // Andymark 20:1 gearmotor
+    private final double DRIVE_GEAR_REDUCTION = 2.0 ;     // This is < 1.0 if geared UP
+    private final double WHEEL_DIAMETER_INCHES = 4.0 ;     // For figuring circumference
+    private final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
 
     //constructor gets hardware object from teleop class when it is constructed
     public RRBotMecanumDrive(RRBotHardware robot)
@@ -108,5 +120,31 @@ public class RRBotMecanumDrive
         {
             return value;
         }*/
+    }
+
+    public void AutoMove(double speed, double time)
+    {
+        isAutoMove = true;
+        autoTime = time;
+
+        autoMoveTime.reset();
+
+        robot.rearRightMotor.setPower(speed);
+        robot.rearLeftMotor.setPower(speed);
+        robot.frontRightMotor.setPower(speed);
+        robot.frontLeftMotor.setPower(speed);
+    }
+
+    public void AutoMoveEndCheck()
+    {
+        if(autoMoveTime.milliseconds() >= autoTime)
+        {
+            isAutoMove = false;
+        }
+    }
+
+    public boolean getIsAutoMove()
+    {
+        return isAutoMove;
     }
 }

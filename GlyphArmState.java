@@ -4,7 +4,8 @@ package org.firstinspires.ftc.teamcode;
 
 public enum GlyphArmState
 {
-    //arm position(encoder value, is it a front position)
+    //arm_position(encoder_value, is_front_position)
+
     //START(0, true), //was -30
     FRONT_PICKUP(-15, true), //was -30
     FRONT1(186, true),
@@ -18,7 +19,8 @@ public enum GlyphArmState
     BACK1(5150, false),
     BACK_PICKUP(5350, false),  //5384 max
     RELIC_PICKUP(2327, false), //was 3000
-    RELIC_PLACE(4500, false), //was 4327
+    RELIC_PICKUP2(2327, false),
+    RELIC_PLACE(4450, false), //was 4500
     RELIC_DONE(-30, true);
     
     private final int armEncoderPos;

@@ -12,34 +12,43 @@ import com.qualcomm.robotcore.util.Range;
 public class RRBotGlyphArm
 {
     RRBotHardware robot;
+    RRBotMecanumDrive drive;
     private ElapsedTime joystickTime = new ElapsedTime();
-    private ElapsedTime accelTime = new ElapsedTime();
-    private ElapsedTime accelUpdateTime = new ElapsedTime();
+    //private ElapsedTime accelTime = new ElapsedTime();
+    //private ElapsedTime accelUpdateTime = new ElapsedTime();
 
     //final variables for values that will not change
     private final double GLYPH_WRIST_SPEED = 1;
-    private final double GRABBER_OPEN_POS = 0.8;
-    private final double GRABBER_CLOSE_POS = 0.15;
-    private final double GRABBER_RELEASE_POS = 0.4;
-    private final double GLYPH_ARM_MAX_SPEED = 0.6;
+    private final double GRABBER_OPEN_POS = 0.25; //was .8
+    private final double GRABBER_CLOSE_POS = 0.8; //was .75 waswas .15
+    private final double GRABBER_RELEASE_POS = 0.5; //was .4
+    private final double GLYPH_ARM_MAX_SPEED = 1; //was .8
     private final double GLYPH_ARM_SLOW_SPEED = 0.2;
     private final double GLYPH_ARM_SLOW_DIST = 300;
     private final double HOME_ARM_SPEED = 0.2;
-    private final double GLYPH_ARM_FAST_SPEED = 0.8;
-    private final int ARM_POS_THRESHOLD = 70;
+    //private final double GLYPH_ARM_FAST_SPEED = 0.8;
+    private final int ARM_POS_THRESHOLD = 80;
     private final int WRIST_POS_THRESHOLD = 50;
-    private final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.2; //was .35
-    private final double RELIC_INIT_SERVO_RELICMODE_POS = 0.6; //was .76
+    private final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.2;
+    private final double RELIC_INIT_SERVO_RELICMODE_POS = 0.6;
     private final double RELIC_GRABBER_OPEN_POS = 0;
     private final double RELIC_GRABBER_CLOSE_POS = 0.85;
-    private final double RELIC_MODE_ARM_SPEED = 0.7;
-    private final double RELIC_MODE_WRIST_SPEED = 0.3;
+    private final double RELIC_MODE_ARM_SPEED = 0.8; //was .7
+    private final double RELIC_MODE_WRIST_SPEED = 0.25; //was .5
+    private final double JEWEL_ARM_POS1 = 0.1;
+    private final double JEWEL_ARM_POS2 = 0.5;
+    private final double JEWEL_ARM_POS3 = 0.8;
     private final int ARM_JOYSTICK_INCREMENT = 40;
     private final int WRIST_JOYSTICK_INCREMENT = 70;
     private final int JOYSTICK_UPDATE_MILLIS = 5;
-    private final int GLYPH_ARM_SPEED_UPDATE_MILLIS = 10;
-    private final int ACCEL_TIME = 1000;
-    private final double SPEED_INCREMENT = GLYPH_ARM_FAST_SPEED / (ACCEL_TIME / GLYPH_ARM_SPEED_UPDATE_MILLIS);
+    //private final int GLYPH_ARM_SPEED_UPDATE_MILLIS = 10;
+    //private final int ACCEL_TIME = 1000;
+    //private final double SPEED_INCREMENT = GLYPH_ARM_FAST_SPEED / (ACCEL_TIME / GLYPH_ARM_SPEED_UPDATE_MILLIS);
+    private final double AUTO_GLYPH_PLACE_DRIVE_TIME_1 = 60;
+    private final double AUTO_GLYPH_PLACE_DRIVE_TIME_2_LOW = 200;
+    private final double AUTO_GLYPH_PLACE_DRIVE_TIME_3_LOW = 140;
+    private final double AUTO_GLYPH_PLACE_DRIVE_TIME_2_HIGH = 320;
+    private final double AUTO_GLYPH_PLACE_DRIVE_SPEED = 0.6;
 
     private GlyphArmState prevArmState = GlyphArmState.FRONT_PICKUP;
     private GlyphArmState currentArmState = GlyphArmState.FRONT_PICKUP;
@@ -53,11 +62,16 @@ public class RRBotGlyphArm
     private GlyphArmState beforeEndLimitState = currentArmState;
     private boolean relicMode = false;
     private double joystickValue;
+    private boolean isAutoGlyphPlace = false;
+    private int autoGlyphPlaceState = 0;
+    private GlyphArmState autoGlyphPlaceArmInitState = null;
+    private boolean hasGrabberClosed = false;
 
-    //constructor gets hardware object from teleop class when it is constructed
-    public RRBotGlyphArm(RRBotHardware robot)
+    //constructor gets hardware object and drive object from teleop class when it is constructed
+    public RRBotGlyphArm(RRBotHardware robot, RRBotMecanumDrive drive)
     {
         this.robot = robot;
+        this.drive = drive;
     }
 
     public void UpdateValues()
@@ -86,6 +100,12 @@ public class RRBotGlyphArm
             accelUpdateTime.reset();
         }*/
 
+        if(isAutoGlyphPlace)
+        {
+            AutoGlyphPlaceRoutine();
+        }
+
+        GrabberSignal();
     }
 
     public void MoveGlyphArmToState(GlyphArmState state)
@@ -107,7 +127,7 @@ public class RRBotGlyphArm
     public void MoveGlyphWristToState(GlyphWristState state)
     {
         //make sure neither grabber is open
-        if(!getGrabber1Pos().equals("open") && !getGrabber2Pos().equals("open"))
+        if(isAutoGlyphPlace || (!getGrabber1Pos().equals("open") && !getGrabber2Pos().equals("open")))
         {
             currentWristState = state;
 
@@ -139,7 +159,7 @@ public class RRBotGlyphArm
         //make sure the arm and wrist are not currently moving
         if(prevArmState == currentArmState && prevWristState == currentWristState)
         {
-            //if wrist in in front position and arm is in a front position or wrist is in back position and arm is in a back position
+            /*//if wrist in in front position and arm is in a front position or wrist is in back position and arm is in a back position
             if((currentWristState == GlyphWristState.FRONT && currentArmState.isFrontPos()) || (currentWristState == GlyphWristState.BACK && !currentArmState.isFrontPos()))
             {
                 if(getGrabber1Pos().equals("open") || getGrabber1Pos().equals("release"))
@@ -170,7 +190,139 @@ public class RRBotGlyphArm
                 {
                     robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
                 }
+            }*/
+
+            if(getActiveGrabber() == 1)
+            {
+                if(getGrabber1Pos().equals("open") || getGrabber1Pos().equals("release"))
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                }
+                else if(button.equals("open"))
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
+                }
+                else if(button.equals("release"))
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
+                }
             }
+            else if(getActiveGrabber() == 2)
+            {
+                if(getGrabber2Pos().equals("open") || getGrabber2Pos().equals("release"))
+                {
+                    robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                }
+                else if(button.equals("open"))
+                {
+                    robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
+                }
+                else if(button.equals("release"))
+                {
+                    robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
+                }
+            }
+        }
+    }
+
+    /*public void MoveGrabberAuto(String position)
+    {
+        //make sure the arm and wrist are not currently moving
+        if(prevArmState == currentArmState && prevWristState == currentWristState)
+        {
+            //if wrist in in front position and arm is in a front position or wrist is in back position and arm is in a back position
+            if((currentWristState == GlyphWristState.FRONT && currentArmState.isFrontPos()) || (currentWristState == GlyphWristState.BACK && !currentArmState.isFrontPos()))
+            {
+                if(position.equals("close"))
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                }
+                else if(position.equals("open"))
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
+                }
+            }
+            //if wrist in in back position and arm is in a front position or wrist is in front position and arm is in a back position
+            else if((currentWristState == GlyphWristState.BACK && currentArmState.isFrontPos()) || (currentWristState == GlyphWristState.FRONT && !currentArmState.isFrontPos()))
+            {
+                if(position.equals("close"))
+                {
+                    robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                }
+                else if(position.equals("open"))
+                {
+                    robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
+                }
+            }
+        }
+    }*/
+
+    public void AutoCloseGrabber()
+    {
+        if(prevArmState == currentArmState && prevWristState == currentWristState)
+        {
+            if(getActiveGrabber() == 1)
+            {
+                if(getGrabber1SwitchState())
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                    hasGrabberClosed = true;
+                }
+                else if(!hasGrabberClosed)
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
+                }
+            }
+            else if(getActiveGrabber() == 2)
+            {
+                if(getGrabber2SwitchState())
+                {
+                    robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                    hasGrabberClosed = true;
+                }
+                else if(!hasGrabberClosed)
+                {
+                    robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
+                }
+            }
+        }
+    }
+
+    public void GrabberSignal()
+    {
+        if(getActiveGrabber() == 1)
+        {
+            if(getGrabber1Pos().equals("open"))
+            {
+                robot.jewelArmServo2.setPosition(JEWEL_ARM_POS1);
+            }
+            else if(getGrabber1Pos().equals("release"))
+            {
+                robot.jewelArmServo2.setPosition(JEWEL_ARM_POS2);
+            }
+            else if(getGrabber1Pos().equals("close"))
+            {
+                robot.jewelArmServo2.setPosition(JEWEL_ARM_POS3);
+            }
+        }
+        else if(getActiveGrabber() == 2)
+        {
+            if(getGrabber2Pos().equals("open"))
+            {
+                robot.jewelArmServo2.setPosition(JEWEL_ARM_POS1);
+            }
+            else if(getGrabber2Pos().equals("release"))
+            {
+                robot.jewelArmServo2.setPosition(JEWEL_ARM_POS2);
+            }
+            else if(getGrabber2Pos().equals("close"))
+            {
+                robot.jewelArmServo2.setPosition(JEWEL_ARM_POS3);
+            }
+        }
+        else
+        {
+            robot.jewelArmServo2.setPosition(JEWEL_ARM_POS3);
         }
     }
 
@@ -369,13 +521,25 @@ public class RRBotGlyphArm
         }
     }
 
-    public void MoveToRelicPickupPos()
+    public void MoveToRelicPickupPos(int pickupPos)
     {
-        MoveGlyphArmToState(GlyphArmState.RELIC_PICKUP);
-
-        if(prevArmState == currentArmState)
+        if(pickupPos == 1)
         {
-            MoveGlyphWristToState(GlyphWristState.RELIC_PICKUP);
+            MoveGlyphArmToState(GlyphArmState.RELIC_PICKUP);
+
+            if(prevArmState == currentArmState)
+            {
+                MoveGlyphWristToState(GlyphWristState.RELIC_PICKUP);
+            }
+        }
+        else if(pickupPos == 2)
+        {
+            MoveGlyphArmToState(GlyphArmState.RELIC_PICKUP2);
+
+            if(prevArmState == currentArmState)
+            {
+                MoveGlyphWristToState(GlyphWristState.RELIC_PICKUP2);
+            }
         }
     }
 
@@ -459,7 +623,234 @@ public class RRBotGlyphArm
         }
     }
 
-    //accessor methods to determine arm, wrist, and grabber positions, and allow teleop class to access instance variables for telemetry
+    public void setIsAutoGlyphPlace(boolean isButtonPressed)
+    {
+        if(isButtonPressed &&
+                prevArmState == currentArmState &&
+                prevWristState == currentWristState &&
+                currentWristState == GlyphWristState.BACK &&
+                (currentArmState == GlyphArmState.FRONT1 ||
+                currentArmState == GlyphArmState.FRONT2 ||
+                currentArmState == GlyphArmState.FRONT3))
+        {
+            isAutoGlyphPlace = true;
+        }
+    }
+
+    //automatically readjusts/flips wrist and places 2nd glyph
+    public void AutoGlyphPlaceRoutine()
+    {
+        //make sure arm, wrist, and drive motors are not moving
+        if(prevArmState == currentArmState && prevWristState == currentWristState && !drive.getIsAutoMove())
+        {
+            //do a linear routine with a number of steps; autoGlyphPlaceState holds the current step
+
+            //step 1: open grabber 2
+            if(autoGlyphPlaceState == 0)
+            {
+                robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
+                autoGlyphPlaceState = 1;
+                return;
+            }
+
+            //step 2: drive robot backwards
+            if(autoGlyphPlaceState == 1)
+            {
+                autoGlyphPlaceArmInitState = currentArmState;
+                drive.AutoMove(-AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_1);
+                autoGlyphPlaceState = 2;
+                return;
+            }
+
+            //step 3: move wrist to start position
+            if(autoGlyphPlaceState == 2)
+            {
+                MoveGlyphWristToState(GlyphWristState.START);
+                autoGlyphPlaceState = 3;
+                return;
+            }
+
+            //step 4: close grabber 2
+            if(autoGlyphPlaceState == 3)
+            {
+                robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                autoGlyphPlaceState = 4;
+                return;
+            }
+
+            //rest of steps when arm started in FRONT1
+            if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT1)
+            {
+                if(autoGlyphPlaceState == 4)
+                {
+                    MoveGlyphArmToState(GlyphArmState.FRONT2);
+                    autoGlyphPlaceState = 5;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 5)
+                {
+                    drive.AutoMove(-AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_2_LOW);
+                    autoGlyphPlaceState = 6;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 6)
+                {
+                    MoveGlyphWristToState(GlyphWristState.FRONT);
+                    autoGlyphPlaceState = 7;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 7)
+                {
+                    drive.AutoMove(AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_3_LOW);
+                    autoGlyphPlaceState = 8;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 8)
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
+                    autoGlyphPlaceState = 9;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 9)
+                {
+                    isAutoGlyphPlace = false;
+                    autoGlyphPlaceState = 0;
+                }
+            }
+            else if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT2)
+            {
+                if(autoGlyphPlaceState == 4)
+                {
+                    MoveGlyphArmToState(GlyphArmState.FRONT3);
+                    autoGlyphPlaceState = 5;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 5)
+                {
+                    MoveGlyphWristToState(GlyphWristState.FRONT);
+                    autoGlyphPlaceState = 6;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 6)
+                {
+                    drive.AutoMove(AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_1);
+                    autoGlyphPlaceState = 7;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 7)
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
+                    autoGlyphPlaceState = 8;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 8)
+                {
+                    isAutoGlyphPlace = false;
+                    autoGlyphPlaceState = 0;
+                }
+            }
+            else if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT3)
+            {
+                if(autoGlyphPlaceState == 4)
+                {
+                    MoveGlyphArmToState(GlyphArmState.FRONT4);
+                    autoGlyphPlaceState = 5;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 5)
+                {
+                    MoveGlyphWristToState(GlyphWristState.FRONT);
+                    autoGlyphPlaceState = 6;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 6)
+                {
+                    drive.AutoMove(AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_2_HIGH);
+                    autoGlyphPlaceState = 7;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 7)
+                {
+                    robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
+                    autoGlyphPlaceState = 8;
+                    return;
+                }
+
+                if(autoGlyphPlaceState == 8)
+                {
+                    isAutoGlyphPlace = false;
+                    autoGlyphPlaceState = 0;
+                }
+            }
+
+
+
+
+
+            /*if(autoGlyphPlaceState == 3)
+            {
+                if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT1)
+                {
+                    MoveGlyphArmToState(GlyphArmState.FRONT2);
+                }
+                else if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT2)
+                {
+                    MoveGlyphArmToState(GlyphArmState.FRONT3);
+                }
+                else if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT3)
+                {
+                    MoveGlyphArmToState(GlyphArmState.FRONT4);
+                }
+                autoGlyphPlaceState = 4;
+                return;
+            }
+
+            if(autoGlyphPlaceState == 4)
+            {
+                if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT1)
+                {
+                    drive.AutoMove(-AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_2);
+                }
+                else if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT2)
+                {
+
+                }
+                else if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT3)
+                {
+                    drive.AutoMove(AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_2);
+                }
+                autoGlyphPlaceState = 5;
+                return;
+            }
+
+            if(autoGlyphPlaceState == 5)
+            {
+                MoveGlyphWristToState(GlyphWristState.FRONT);
+                autoGlyphPlaceState = 6;
+                return;
+            }
+
+            if(autoGlyphPlaceState == 6)
+            {
+                isAutoGlyphPlace = false;
+                autoGlyphPlaceState = 0;
+            }*/
+        }
+    }
+
+    //accessor methods
     
     public boolean getStartLimitState()
     {
@@ -469,6 +860,33 @@ public class RRBotGlyphArm
     public boolean getEndLimitState()
     {
         return !(robot.glyphEndLimit.getState());
+    }
+
+    public boolean getGrabber1SwitchState()
+    {
+        return !(robot.glyphGrabberSwitch1.getState());
+    }
+    public boolean getGrabber2SwitchState()
+    {
+        return !(robot.glyphGrabberSwitch2.getState());
+    }
+
+    public int getActiveGrabber()
+    {
+        //if wrist in in front position and arm is in a front position or wrist is in back position and arm is in a back position
+        if((currentWristState == GlyphWristState.FRONT && currentArmState.isFrontPos()) || (currentWristState == GlyphWristState.BACK && !currentArmState.isFrontPos()))
+        {
+            return 1;
+        }
+        //if wrist in in back position and arm is in a front position or wrist is in front position and arm is in a back position
+        else if((currentWristState == GlyphWristState.BACK && currentArmState.isFrontPos()) || (currentWristState == GlyphWristState.FRONT && !currentArmState.isFrontPos()))
+        {
+            return 2;
+        }
+        else
+        {
+            return 0;
+        }
     }
 
     public GlyphArmState getCurrentArmState()
@@ -559,5 +977,10 @@ public class RRBotGlyphArm
     public double getJoystickValue()
     {
         return joystickValue;
+    }
+
+    public void setHasGrabberClosed(boolean hasGrabberClosed)
+    {
+        this.hasGrabberClosed = hasGrabberClosed;
     }
 }

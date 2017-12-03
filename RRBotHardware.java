@@ -35,13 +35,15 @@ public class RRBotHardware
     public DigitalChannel fieldPosSwitch = null;
     public DigitalChannel glyphStartLimit = null;
     public DigitalChannel glyphEndLimit = null;
+    public DigitalChannel glyphGrabberSwitch1 = null;
+    public DigitalChannel glyphGrabberSwitch2 = null;
 
     HardwareMap hwMap = null;
     private ElapsedTime period = new ElapsedTime();
 
     public static final double JEWEL_ARM_SERVO_1_START_POS = 1;
     public static final double JEWEL_ARM_SERVO_2_START_POS = 0.1;
-    public static final double GRABBER_START_POS = 0.2;
+    public static final double GRABBER_START_POS = 0.8;
     public static final double RELIC_INIT_SERVO_START_POS = 0.2;
     public static final double RELIC_GRABBER_SERVO_START_POS = 0.8;
 
@@ -70,6 +72,8 @@ public class RRBotHardware
         fieldPosSwitch = hwMap.digitalChannel.get("field_pos");
         glyphStartLimit = hwMap.digitalChannel.get("glyph_start_limit");
         glyphEndLimit = hwMap.digitalChannel.get("glyph_end_limit");
+        glyphGrabberSwitch1 = hwMap.digitalChannel.get("grabber_switch_1");
+        glyphGrabberSwitch2 = hwMap.digitalChannel.get("grabber_switch_2");
 
         //set motors to drive forwards
         rearRightMotor.setDirection(DcMotor.Direction.REVERSE);
@@ -98,7 +102,7 @@ public class RRBotHardware
         glyphWristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         servoPowerModule.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        //sets motors to brake mode
+        //sets motors to brake mode and servo power module "motor" to coast mode
         rearRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -120,6 +124,8 @@ public class RRBotHardware
         fieldPosSwitch.setMode(DigitalChannel.Mode.INPUT);
         glyphStartLimit.setMode(DigitalChannel.Mode.INPUT);
         glyphEndLimit.setMode(DigitalChannel.Mode.INPUT);
+        glyphGrabberSwitch1.setMode(DigitalChannel.Mode.INPUT);
+        glyphGrabberSwitch2.setMode(DigitalChannel.Mode.INPUT);
     }
 
     /***
