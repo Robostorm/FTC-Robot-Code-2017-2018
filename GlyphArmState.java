@@ -18,8 +18,8 @@ public enum GlyphArmState
     BACK2(4692, false), //was 4875
     BACK1(5150, false),
     BACK_PICKUP(5350, false),  //5384 max
-    RELIC_PICKUP(2327, false), //was 3000
-    RELIC_PICKUP2(2327, false),
+    RELIC_PICKUP(2024, false), //was 2327
+    RELIC_PICKUP2(1800, false), //was 2327
     RELIC_PLACE(4450, false), //was 4500
     RELIC_DONE(-30, true);
     

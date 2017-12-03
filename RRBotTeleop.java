@@ -34,7 +34,7 @@ public class RRBotTeleop extends OpMode
     {
         //initialize hardware variables by calling the init function of the RRBotHardware class via the robot object
         robot.init(hardwareMap);
-
+        gamepad1.setJoystickDeadzone(0.05f);
         telemetry.addData("Robot","is init");
     }
 
@@ -69,7 +69,7 @@ public class RRBotTeleop extends OpMode
     {
         if(!drive.getIsAutoMove())
         {
-            drive.setMotorPower(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, -gamepad1.right_stick_y, true);
+            drive.setMotorPower(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, -gamepad1.right_stick_y, false);
         }
         else
         {
@@ -252,6 +252,20 @@ public class RRBotTeleop extends OpMode
     //debug values to be shown on driver station
     public void Telemetry()
     {
+        double[] velocities = drive.calcVelocities(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, -gamepad1.right_stick_y, false);
+
+        telemetry.addData("v1", velocities[0]);
+        telemetry.addData("v2", velocities[1]);
+        telemetry.addData("v3", velocities[2]);
+        telemetry.addData("v4", velocities[3]);
+        telemetry.addData("leftYValue", drive.inputFunction(gamepad1.left_stick_y));
+        telemetry.addData("leftXValue", drive.inputFunction(gamepad1.left_stick_x));
+        telemetry.addData("rightYValue", drive.inputFunction(gamepad1.right_stick_y));
+        telemetry.addData("rightXValue", drive.inputFunction(gamepad1.right_stick_x));
+        telemetry.addData("leftY", gamepad1.left_stick_y);
+        telemetry.addData("leftX", gamepad1.left_stick_x);
+        telemetry.addData("rightY", gamepad1.right_stick_y);
+        telemetry.addData("rightX", gamepad1.right_stick_x);
         telemetry.addData("grabber1SwitchState", glyphArm.getGrabber1SwitchState());
         telemetry.addData("grabber2SwitchState", glyphArm.getGrabber2SwitchState());
         telemetry.addData("ArmMotorPosition", glyphArm.getArmPos());

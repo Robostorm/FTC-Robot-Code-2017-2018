@@ -33,13 +33,13 @@ public class RRBotGlyphArm
     private final double RELIC_INIT_SERVO_RELICMODE_POS = 0.6;
     private final double RELIC_GRABBER_OPEN_POS = 0;
     private final double RELIC_GRABBER_CLOSE_POS = 0.85;
-    private final double RELIC_MODE_ARM_SPEED = 0.8; //was .7
+    private final double RELIC_MODE_ARM_SPEED = 0.7; //was .8
     private final double RELIC_MODE_WRIST_SPEED = 0.25; //was .5
     private final double JEWEL_ARM_POS1 = 0.1;
     private final double JEWEL_ARM_POS2 = 0.5;
     private final double JEWEL_ARM_POS3 = 0.8;
     private final int ARM_JOYSTICK_INCREMENT = 40;
-    private final int WRIST_JOYSTICK_INCREMENT = 40; //was 70
+    private final int WRIST_JOYSTICK_INCREMENT = 20; //was 70
     private final int JOYSTICK_UPDATE_MILLIS = 5;
     //private final int GLYPH_ARM_SPEED_UPDATE_MILLIS = 10;
     //private final int ACCEL_TIME = 1000;
@@ -159,39 +159,7 @@ public class RRBotGlyphArm
         //make sure the arm and wrist are not currently moving
         if(prevArmState == currentArmState && prevWristState == currentWristState)
         {
-            /*//if wrist in in front position and arm is in a front position or wrist is in back position and arm is in a back position
-            if((currentWristState == GlyphWristState.FRONT && currentArmState.isFrontPos()) || (currentWristState == GlyphWristState.BACK && !currentArmState.isFrontPos()))
-            {
-                if(getGrabber1Pos().equals("open") || getGrabber1Pos().equals("release"))
-                {
-                    robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
-                }
-                else if(button.equals("open"))
-                {
-                    robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
-                }
-                else if(button.equals("release"))
-                {
-                    robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
-                }
-            }
-            //if wrist in in back position and arm is in a front position or wrist is in front position and arm is in a back position
-            else if((currentWristState == GlyphWristState.BACK && currentArmState.isFrontPos()) || (currentWristState == GlyphWristState.FRONT && !currentArmState.isFrontPos()))
-            {
-                if(getGrabber2Pos().equals("open") || getGrabber2Pos().equals("release"))
-                {
-                    robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
-                }
-                else if(button.equals("open"))
-                {
-                    robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
-                }
-                else if(button.equals("release"))
-                {
-                    robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
-                }
-            }*/
-
+            //if the grabber in front is grabber 1
             if(getActiveGrabber() == 1)
             {
                 if(getGrabber1Pos().equals("open") || getGrabber1Pos().equals("release"))
@@ -207,6 +175,7 @@ public class RRBotGlyphArm
                     robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
                 }
             }
+            //if the grabber in front is grabber 2
             else if(getActiveGrabber() == 2)
             {
                 if(getGrabber2Pos().equals("open") || getGrabber2Pos().equals("release"))
@@ -224,38 +193,6 @@ public class RRBotGlyphArm
             }
         }
     }
-
-    /*public void MoveGrabberAuto(String position)
-    {
-        //make sure the arm and wrist are not currently moving
-        if(prevArmState == currentArmState && prevWristState == currentWristState)
-        {
-            //if wrist in in front position and arm is in a front position or wrist is in back position and arm is in a back position
-            if((currentWristState == GlyphWristState.FRONT && currentArmState.isFrontPos()) || (currentWristState == GlyphWristState.BACK && !currentArmState.isFrontPos()))
-            {
-                if(position.equals("close"))
-                {
-                    robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
-                }
-                else if(position.equals("open"))
-                {
-                    robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
-                }
-            }
-            //if wrist in in back position and arm is in a front position or wrist is in front position and arm is in a back position
-            else if((currentWristState == GlyphWristState.BACK && currentArmState.isFrontPos()) || (currentWristState == GlyphWristState.FRONT && !currentArmState.isFrontPos()))
-            {
-                if(position.equals("close"))
-                {
-                    robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
-                }
-                else if(position.equals("open"))
-                {
-                    robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
-                }
-            }
-        }
-    }*/
 
     public void AutoCloseGrabber()
     {
@@ -454,6 +391,8 @@ public class RRBotGlyphArm
     public void HomeArm()
     {
         MoveGlyphWristToState(GlyphWristState.START);
+        robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
 
         //if limit switch is pressed, turn off arm motor and reset encoder
         if(getStartLimitState())

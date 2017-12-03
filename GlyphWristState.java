@@ -19,8 +19,8 @@ public enum GlyphWristState
     START(0),
     FRONT(625),
     BACK(-625),
-    RELIC_PICKUP(-370), //was 402
-    RELIC_PICKUP2(-320), //was -340
+    RELIC_PICKUP(-343), //was -370
+    RELIC_PICKUP2(-255), // -267 was -320
     RELIC_PLACE(-20), //was -40
     RELIC_DONE(300);
     

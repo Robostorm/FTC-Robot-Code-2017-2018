@@ -119,6 +119,9 @@ public class RRBotAutoGlyph extends LinearOpMode
         telemetry.addData("Field Position", fieldPos);
         telemetry.update();
 
+        robot.grabber1Servo.setPosition(0.8);
+        robot.grabber2Servo.setPosition(0.8);
+
         robot.jewelArmServo2.setPosition(JEWEL_ARM_SERVO_2_MID_POS);
 
         MoveJewelArm("down");
