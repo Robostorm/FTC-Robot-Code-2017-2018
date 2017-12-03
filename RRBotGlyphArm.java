@@ -39,7 +39,7 @@ public class RRBotGlyphArm
     private final double JEWEL_ARM_POS2 = 0.5;
     private final double JEWEL_ARM_POS3 = 0.8;
     private final int ARM_JOYSTICK_INCREMENT = 40;
-    private final int WRIST_JOYSTICK_INCREMENT = 70;
+    private final int WRIST_JOYSTICK_INCREMENT = 40; //was 70
     private final int JOYSTICK_UPDATE_MILLIS = 5;
     //private final int GLYPH_ARM_SPEED_UPDATE_MILLIS = 10;
     //private final int ACCEL_TIME = 1000;
