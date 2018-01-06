@@ -29,10 +29,10 @@ public class RRBotGlyphArm
     //private final double GLYPH_ARM_FAST_SPEED = 0.8;
     private final int ARM_POS_THRESHOLD = 80;
     private final int WRIST_POS_THRESHOLD = 50;
-    private final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.2;
+    protected static final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.2;
     private final double RELIC_INIT_SERVO_RELICMODE_POS = 0.6;
     private final double RELIC_GRABBER_OPEN_POS = 0;
-    private final double RELIC_GRABBER_CLOSE_POS = 0.85;
+    protected static final double RELIC_GRABBER_CLOSE_POS = 0.85;
     private final double RELIC_MODE_ARM_SPEED = 0.7; //was .8
     private final double RELIC_MODE_WRIST_SPEED = 0.25; //was .5
     private final double JEWEL_ARM_POS1 = 0.1;
@@ -162,21 +162,31 @@ public class RRBotGlyphArm
             //if the grabber in front is grabber 1
             if(getActiveGrabber() == 1)
             {
-                if(getGrabber1Pos().equals("open") || getGrabber1Pos().equals("release"))
+                if(button.equals("open"))
                 {
-                    robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
-                }
-                else if(button.equals("open"))
-                {
-                    robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
+                    if(getGrabber1Pos().equals("open"))
+                    {
+                        robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                    }
+                    else if(getGrabber1Pos().equals("close") || getGrabber1Pos().equals("release"))
+                    {
+                        robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
+                    }
                 }
                 else if(button.equals("release"))
                 {
-                    robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
+                    if(getGrabber1Pos().equals("open") || getGrabber1Pos().equals("release"))
+                    {
+                        robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                    }
+                    else if(getGrabber1Pos().equals("close"))
+                    {
+                        robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
+                    }
                 }
             }
             //if the grabber in front is grabber 2
-            else if(getActiveGrabber() == 2)
+            /*else if(getActiveGrabber() == 2)
             {
                 if(getGrabber2Pos().equals("open") || getGrabber2Pos().equals("release"))
                 {
@@ -189,6 +199,32 @@ public class RRBotGlyphArm
                 else if(button.equals("release"))
                 {
                     robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
+                }
+            }*/
+
+            if(getActiveGrabber() == 2)
+            {
+                if(button.equals("open"))
+                {
+                    if(getGrabber2Pos().equals("open"))
+                    {
+                        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                    }
+                    else if(getGrabber2Pos().equals("close") || getGrabber2Pos().equals("release"))
+                    {
+                        robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
+                    }
+                }
+                else if(button.equals("release"))
+                {
+                    if(getGrabber2Pos().equals("open") || getGrabber2Pos().equals("release"))
+                    {
+                        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                    }
+                    else if(getGrabber2Pos().equals("close"))
+                    {
+                        robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
+                    }
                 }
             }
         }

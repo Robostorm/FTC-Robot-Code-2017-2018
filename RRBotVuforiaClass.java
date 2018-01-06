@@ -25,7 +25,7 @@ public class RRBotVuforiaClass
 
     //VuforiaTrackables targets;
     VuforiaTrackableDefaultListener listener;
-    VuforiaLocalizer vuforia_localizer;
+    ClosableVuforiaLocalizer vuforia_localizer;
     float Tx,Tz,Ty,Deg;
     float Rx,Ry;
     RelicRecoveryVuMark target_name;
@@ -43,8 +43,7 @@ public class RRBotVuforiaClass
                 "GCIcDBhsFae0W+AbfXyR3ohhuEa9+La+zjEtkLUUOCxAicpAG9YIPF80B";
         params.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
         params.cameraMonitorFeedback = VuforiaLocalizer.Parameters.CameraMonitorFeedback.AXES;
-        vuforia_localizer = ClassFactory.createVuforiaLocalizer(params);
-
+        vuforia_localizer = new ClosableVuforiaLocalizer(params);
 
         /*//load targets
         targets = vuforia_localizer.loadTrackablesFromAsset("RelicVuMark");
@@ -151,5 +150,10 @@ public class RRBotVuforiaClass
 
     String format(OpenGLMatrix transformationMatrix) {
         return (transformationMatrix != null) ? transformationMatrix.formatAsTransform() : "null";
+    }
+
+    public void close()
+    {
+        vuforia_localizer.close();
     }
 }

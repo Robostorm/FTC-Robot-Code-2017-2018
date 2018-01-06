@@ -79,16 +79,16 @@ public class RRBotMecanumDrive
         double value = input;
 
         //f(x) = x^3
-        //value = value * value * value;
+        value = value * value * value;
 
-        if(value > 0)
+        /*if(value > 0)
         {
             Range.clip(value, driveDeadBand, 1);
         }
         else if(value < 0)
         {
             Range.clip(value, -1, -driveDeadBand);
-        }
+        }*/
         /*if(Math.abs(value - 0) < 0.01)
         {
             value = 0;

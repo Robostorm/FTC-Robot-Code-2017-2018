@@ -44,8 +44,8 @@ public class RRBotHardware
     public static final double JEWEL_ARM_SERVO_1_START_POS = 1;
     public static final double JEWEL_ARM_SERVO_2_START_POS = 0.1;
     //public static final double GRABBER_START_POS = 0.8;
-    public static final double RELIC_INIT_SERVO_START_POS = 0.2;
-    public static final double RELIC_GRABBER_SERVO_START_POS = 0.8;
+    //public static final double RELIC_INIT_SERVO_START_POS = 0.2;
+    //public static final double RELIC_GRABBER_SERVO_START_POS = 0.8;
 
     public RRBotHardware(){}
 
@@ -116,8 +116,8 @@ public class RRBotHardware
         jewelArmServo2.setPosition(JEWEL_ARM_SERVO_2_START_POS);
         //grabber1Servo.setPosition(GRABBER_START_POS);
         //grabber2Servo.setPosition(GRABBER_START_POS);
-        relicInitServo.setPosition(RELIC_INIT_SERVO_START_POS);
-        relicGrabberServo.setPosition(RELIC_GRABBER_SERVO_START_POS);
+        relicInitServo.setPosition(RRBotGlyphArm.RELIC_INIT_SERVO_GLYPHMODE_POS);
+        relicGrabberServo.setPosition(RRBotGlyphArm.RELIC_GRABBER_CLOSE_POS);
 
         //set digital channels to input mode
         allianceColorSwitch.setMode(DigitalChannel.Mode.INPUT);
