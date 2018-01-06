@@ -7,21 +7,24 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 /**
- * Created by andrew on 9/10/17.
+ * Teleop Opmode class, contains separate methods that update each mechanism of the robot which are called by loop()
+ * @author Andrew Hollabaugh
+ * @since 2017-09-10
  */
-
-//Teleop Opmode class for Team 12601's Relic Recovery Robot (2017-2018)
-
 @TeleOp(name="RRBotTeleop")
 public class RRBotTeleop extends OpMode
 {
     //construct an RRBotHardware object to reference its stuff
     RRBotHardware robot = new RRBotHardware();
+
+    //construct drive and glyph arm classes
     RRBotMecanumDrive drive = new RRBotMecanumDrive(robot);
     RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot, drive);
     
     private final double GAMEPAD_TRIGGER_THRESHOLD = 0.2;
     private final double JOYSTICK_DEADZONE = 0.3;
+
+    //used to detect rising edge of button presses
     private boolean prevGrabberOpenButton = false;
     private boolean prevGrabberReleaseButton = false;
     private boolean prevWristButton = false;
@@ -29,20 +32,27 @@ public class RRBotTeleop extends OpMode
     private boolean prevRelicGrabberButton = false;
     private boolean prevAutoGrabberButton = false;
 
+    /**
+     * Runs once when the init button is pressed. Sets things up for the rest of the program.
+     */
     @Override
     public void init()
     {
         //initialize hardware variables by calling the init function of the RRBotHardware class via the robot object
         robot.init(hardwareMap);
+
+        //set joystick deadzone to less than the default, due to the driver's preference
         gamepad1.setJoystickDeadzone(0.05f);
+
         telemetry.addData("Robot","is init");
     }
 
+    /**
+     * Runs repeatedly after start button is pressed. Runs multiple update methods to update different robot mechanisms.
+     */
     @Override
     public void loop()
     {
-        //multiple update methods that are called to update different robot mechanisms
-
         DriveUpdate();
         JewelArmUpdate();
 
@@ -59,14 +69,22 @@ public class RRBotTeleop extends OpMode
         Telemetry();
     }
 
+    /**
+     * Runs once when the stop button is hit.
+     */
     @Override
     public void stop()
     {
+        //turn off the servo power module, which is connected to one the the motor ports
         robot.servoPowerModule.setPower(0);
     }
 
+    /**
+     * Updates the drive system with manual and automatic movements
+     */
     public void DriveUpdate()
     {
+        //if the robot is not driving automatically, set motor power to the manual drive algorithm based on gamepad inputs
         if(!drive.getIsAutoMove())
         {
             drive.setMotorPower(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, -gamepad1.right_stick_y, false);
@@ -77,6 +95,9 @@ public class RRBotTeleop extends OpMode
         }
     }
 
+    /**
+     * Updates the jewel arm.
+     */
     public void JewelArmUpdate()
     {
         //press the a button to reset the jewel arm, just in case it goes wild during teleop
@@ -85,7 +106,10 @@ public class RRBotTeleop extends OpMode
             robot.jewelArmServo1.setPosition(robot.JEWEL_ARM_SERVO_1_START_POS);
         }
     }
-    
+
+    /**
+     * Updates the glyph/relic arm. Reads button inputs to move the arm and wrist to set positions, move grabbers, and perform routines
+     */
     public void GlyphArmUpdate()
     {
         glyphArm.UpdateValues();
@@ -249,23 +273,11 @@ public class RRBotTeleop extends OpMode
         }
     }
 
-    //debug values to be shown on driver station
+    /**
+     * Shows debug values to be on the driver station
+     */
     public void Telemetry()
     {
-        double[] velocities = drive.calcVelocities(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, -gamepad1.right_stick_y, false);
-
-        telemetry.addData("v1", velocities[0]);
-        telemetry.addData("v2", velocities[1]);
-        telemetry.addData("v3", velocities[2]);
-        telemetry.addData("v4", velocities[3]);
-        telemetry.addData("leftYValue", drive.inputFunction(gamepad1.left_stick_y));
-        telemetry.addData("leftXValue", drive.inputFunction(gamepad1.left_stick_x));
-        telemetry.addData("rightYValue", drive.inputFunction(gamepad1.right_stick_y));
-        telemetry.addData("rightXValue", drive.inputFunction(gamepad1.right_stick_x));
-        telemetry.addData("leftY", gamepad1.left_stick_y);
-        telemetry.addData("leftX", gamepad1.left_stick_x);
-        telemetry.addData("rightY", gamepad1.right_stick_y);
-        telemetry.addData("rightX", gamepad1.right_stick_x);
         telemetry.addData("grabber1SwitchState", glyphArm.getGrabber1SwitchState());
         telemetry.addData("grabber2SwitchState", glyphArm.getGrabber2SwitchState());
         telemetry.addData("ArmMotorPosition", glyphArm.getArmPos());

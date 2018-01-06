@@ -5,17 +5,17 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 /**
- * Created by andrew on 10/8/17.
+ * Controls the robot's main arm, wrist, and grabbers.
+ * Used to manipulate glyphs and relics.
+ * @author Andrew Hollabaugh
+ * @since 2017-10-08
  */
-
-//class that controls the glyph/relic arm
 public class RRBotGlyphArm
 {
     RRBotHardware robot;
     RRBotMecanumDrive drive;
+
     private ElapsedTime joystickTime = new ElapsedTime();
-    //private ElapsedTime accelTime = new ElapsedTime();
-    //private ElapsedTime accelUpdateTime = new ElapsedTime();
 
     //final variables for values that will not change
     private final double GLYPH_WRIST_SPEED = 1;
@@ -26,7 +26,6 @@ public class RRBotGlyphArm
     private final double GLYPH_ARM_SLOW_SPEED = 0.2;
     private final double GLYPH_ARM_SLOW_DIST = 300;
     private final double HOME_ARM_SPEED = 0.2;
-    //private final double GLYPH_ARM_FAST_SPEED = 0.8;
     private final int ARM_POS_THRESHOLD = 80;
     private final int WRIST_POS_THRESHOLD = 50;
     protected static final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.2;
@@ -41,9 +40,6 @@ public class RRBotGlyphArm
     private final int ARM_JOYSTICK_INCREMENT = 40;
     private final int WRIST_JOYSTICK_INCREMENT = 20; //was 70
     private final int JOYSTICK_UPDATE_MILLIS = 5;
-    //private final int GLYPH_ARM_SPEED_UPDATE_MILLIS = 10;
-    //private final int ACCEL_TIME = 1000;
-    //private final double SPEED_INCREMENT = GLYPH_ARM_FAST_SPEED / (ACCEL_TIME / GLYPH_ARM_SPEED_UPDATE_MILLIS);
     private final double AUTO_GLYPH_PLACE_DRIVE_TIME_1 = 60;
     private final double AUTO_GLYPH_PLACE_DRIVE_TIME_2_LOW = 200;
     private final double AUTO_GLYPH_PLACE_DRIVE_TIME_3_LOW = 140;
@@ -67,13 +63,20 @@ public class RRBotGlyphArm
     private GlyphArmState autoGlyphPlaceArmInitState = null;
     private boolean hasGrabberClosed = false;
 
-    //constructor gets hardware object and drive object from teleop class when it is constructed
+    /**
+     * Constructor gets hardware object and drive object from teleop class when it is constructed
+     * @param robot Hardware class for the robot
+     * @param drive Drive class
+     */
     public RRBotGlyphArm(RRBotHardware robot, RRBotMecanumDrive drive)
     {
         this.robot = robot;
         this.drive = drive;
     }
 
+    /**
+     * Updates variables that store the positions of the arm and wrist. Calls miscellaneous methods. Runs every loop() in the teleop class.
+     */
     public void UpdateValues()
     {
         //set previous arm state equal to current arm state once the arm gets near its target
@@ -91,15 +94,6 @@ public class RRBotGlyphArm
         GlyphArmSpeedUpdate();
         GlyphWristSpeedUpdate();
 
-        /*if(accelUpdateTime.milliseconds() >= GLYPH_ARM_SPEED_UPDATE_MILLIS)
-        {
-            if(prevArmState.isFrontPos() != prevArmState.isFrontPos())
-            {
-                ArmAccelUpdate();
-            }
-            accelUpdateTime.reset();
-        }*/
-
         if(isAutoGlyphPlace)
         {
             AutoGlyphPlaceRoutine();
@@ -108,6 +102,10 @@ public class RRBotGlyphArm
         GrabberSignal();
     }
 
+    /**
+     * Moves the main arm to the specified state. Uses the RUN_TO_POSITION runMode to ensure the arm gets to the desired position and stays there using PID.
+     * @param state The state the arm will move to; specified as the enum GlyphArmState
+     */
     public void MoveGlyphArmToState(GlyphArmState state)
     {
         //make sure neither grabber is open if arm is going between front and back positions
@@ -124,6 +122,10 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Moves the wrist to the specified state. Uses the RUN_TO_POSITION runMode to ensure the wrist gets to the desired position and stays there using PID.
+     * @param state The state the wrist will move to; specified as the enum GlyphWristState
+     */
     public void MoveGlyphWristToState(GlyphWristState state)
     {
         //make sure neither grabber is open
@@ -137,8 +139,12 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Flips the wrist
+     */
     public void FlipWrist()
     {
+        //close both grabbers so they hit other parts of the robot
         robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
         robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
 
@@ -154,6 +160,13 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Moves the front glyph grabber to one of three positions: open, release, or close
+     * open: fully opened
+     * release: partially opened, used for releasing glyphs into cryptobox without disturbing adjacent stacks
+     * close: fully closed
+     * @param button - Which button is pressed, the open/close button or the release/close button
+     */
     public void MoveGrabber(String button)
     {
         //make sure the arm and wrist are not currently moving
@@ -185,23 +198,8 @@ public class RRBotGlyphArm
                     }
                 }
             }
-            //if the grabber in front is grabber 2
-            /*else if(getActiveGrabber() == 2)
-            {
-                if(getGrabber2Pos().equals("open") || getGrabber2Pos().equals("release"))
-                {
-                    robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
-                }
-                else if(button.equals("open"))
-                {
-                    robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
-                }
-                else if(button.equals("release"))
-                {
-                    robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
-                }
-            }*/
 
+            //if the grabber in front is grabber 2
             if(getActiveGrabber() == 2)
             {
                 if(button.equals("open"))
@@ -230,12 +228,18 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Automatically closes the front grabber when limit switches are pressed, indicating the glyph is in position to be picked up.
+     * Grabber closing is "latching," after it closes it will not open again automatically
+     */
     public void AutoCloseGrabber()
     {
+        //make sure the arm and wrist are not moving
         if(prevArmState == currentArmState && prevWristState == currentWristState)
         {
             if(getActiveGrabber() == 1)
             {
+                //use hasGrabberClosed for latching function
                 if(getGrabber1SwitchState())
                 {
                     robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
@@ -261,6 +265,9 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Moves jewel flipper according to position of the front grabber as a signal to the drivers
+     */
     public void GrabberSignal()
     {
         if(getActiveGrabber() == 1)
@@ -293,15 +300,20 @@ public class RRBotGlyphArm
                 robot.jewelArmServo2.setPosition(JEWEL_ARM_POS3);
             }
         }
+        //fall back to position 3 if none of the previous conditions are true
         else
         {
             robot.jewelArmServo2.setPosition(JEWEL_ARM_POS3);
         }
     }
 
+    /**
+     * Updates and sets the speed of the main arm. Runs every UpdateValues() loop
+     * The speed variable is set to the normal speed, then various conditions can change the speed variable, then the motors' speed is set to the variable.
+     */
     public void GlyphArmSpeedUpdate()
     {
-        //set armMotorSpeed to max/normal speed, other stuff will change it to something else if necessary
+        //set armMotorSpeed to normal speed
         armMotorSpeed = GLYPH_ARM_MAX_SPEED;
 
         //if the arm is moving to the start or front_pickup positions, and in the encoder distance GLYPH_ARM_SLOW_DISTANCE before the target position, slow the arm down to GLYPH_ARM_SLOW_SPEED
@@ -321,6 +333,7 @@ public class RRBotGlyphArm
             }
         }
 
+        //set arm speed to a separate relic mode speed if robot is in relic mode
         if(relicMode)
         {
             armMotorSpeed = RELIC_MODE_ARM_SPEED;
@@ -356,77 +369,36 @@ public class RRBotGlyphArm
         //set arm motor to run at the speed specified in this method
         robot.glyphArmMotor1.setPower(armMotorSpeed);
     }
-    
+
+    /**
+     * Updates and sets the speed of the wrist. Runs every UpdateValues() loop
+     * The speed variable is set to the normal speed, then various conditions can change the speed variable, then the motor speed is set to the variable.
+     */
     public void GlyphWristSpeedUpdate()
     {
+        //set wristMotorSpeed to the default speed
         wristMotorSpeed = GLYPH_WRIST_SPEED;
-        
+
+        //change speed to a different relic mode speed if in relic mode
         if(relicMode)
         {
             wristMotorSpeed = RELIC_MODE_WRIST_SPEED;
         }
-        
+
+        //set wrist motor to run at the specified speed
         robot.glyphWristMotor.setPower(wristMotorSpeed);
     }
 
-    /*public void ArmAccelUpdate()
-    {
-        if(prevArmState != currentArmState)
-        {
-            if(prevArmState.isFrontPos() != currentArmState.isFrontPos())
-            {
-                int midPos = (currentArmState.getArmEncoderPos() + prevArmState.getArmEncoderPos()) / 2;
-
-                if(currentArmState.getArmEncoderPos() > prevArmState.getArmEncoderPos())
-                {
-                    if(accelTime.milliseconds() < ACCEL_TIME && robot.glyphArmMotor1.getCurrentPosition() < midPos)
-                    {
-                        armMotorSpeed += SPEED_INCREMENT;
-                    }
-                    else
-                    {
-                        if(!(hasCalcDeccelStartPos))
-                        {
-                            int afterAccelPos = robot.glyphArmMotor1.getCurrentPosition();
-                            deccelStartPos = currentArmState.getArmEncoderPos() - afterAccelPos;
-                            hasCalcDeccelStartPos = true;
-                        }
-
-                        if(robot.glyphArmMotor1.getCurrentPosition() >= deccelStartPos && armMotorSpeed > SPEED_INCREMENT)
-                        {
-                            armMotorSpeed -= SPEED_INCREMENT;
-                        }
-                    }
-                }
-                else
-                {
-                    if(accelTime.milliseconds() < ACCEL_TIME && robot.glyphArmMotor1.getCurrentPosition() > midPos)
-                    {
-                        armMotorSpeed += SPEED_INCREMENT;
-                    }
-                    else
-                    {
-                        if(!(hasCalcDeccelStartPos))
-                        {
-                            int afterAccelPos = robot.glyphArmMotor1.getCurrentPosition();
-                            deccelStartPos = currentArmState.getArmEncoderPos() - afterAccelPos;
-                            hasCalcDeccelStartPos = true;
-                        }
-
-                        if(robot.glyphArmMotor1.getCurrentPosition() >= deccelStartPos && armMotorSpeed > SPEED_INCREMENT)
-                        {
-                            armMotorSpeed -= SPEED_INCREMENT;
-                        }
-                    }
-                }
-            }
-        }
-    }*/
-
-    //slowly move the arm to the start position, hit limit switch, and reset encoder
+    /**
+     * Slowly move the arm to the start position until it hits the limit switch, and reset encoder
+     * Run at the beginning of each opMode
+     */
     public void HomeArm()
     {
+        //make sure wrist is in start (vertical) position at start of opMode
         MoveGlyphWristToState(GlyphWristState.START);
+
+        //make sure grabbers are closed
         robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
         robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
 
@@ -446,15 +418,24 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Moves main arm, wrist, and grabbers to the start/neutral position
+     * Run when "start" button is pressed
+     */
     public void MoveToStartPos()
     {
+        //move grabber servos to close position
         robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
         robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
 
+        //move arm and wrist to start positions
         MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
         MoveGlyphWristToState(GlyphWristState.START);
     }
 
+    /**
+     * Toggles the relicMode variable, which stores a boolean of whether the robot is in glyph mode (false) or relic mode (true).
+     */
     public void ToggleRelicMode()
     {
         if(relicMode)
@@ -469,6 +450,9 @@ public class RRBotGlyphArm
         MoveRelicInitServo();
     }
 
+    /**
+     * Moves the relic init servo, which latches the wrist motor to the arm extension.
+     */
     public void MoveRelicInitServo()
     {
         if(relicMode)
@@ -481,6 +465,10 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Moves the relic grabber if in relic mode
+     * Toggles between open and close positions
+     */
     public void MoveRelicGrabber()
     {
         if(relicMode)
@@ -496,12 +484,18 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Moves the arm or wrist to one of the two relic pickup positions (one for each relic starting position)
+     * The first call moves the arm; the second call moves the wrist
+     * @param pickupPos the pickup position to move to (1 for side farther from recovery zone, or 2 for side closer to recovery zone)
+     */
     public void MoveToRelicPickupPos(int pickupPos)
     {
         if(pickupPos == 1)
         {
             MoveGlyphArmToState(GlyphArmState.RELIC_PICKUP);
 
+            //move the wrist if the arm got to its position
             if(prevArmState == currentArmState)
             {
                 MoveGlyphWristToState(GlyphWristState.RELIC_PICKUP);
@@ -511,6 +505,7 @@ public class RRBotGlyphArm
         {
             MoveGlyphArmToState(GlyphArmState.RELIC_PICKUP2);
 
+            //move the wrist if the arm got to its position
             if(prevArmState == currentArmState)
             {
                 MoveGlyphWristToState(GlyphWristState.RELIC_PICKUP2);
@@ -518,22 +513,34 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Moves the arm or wrist to the relic place position
+     * The first call moves the wrist (transfer position); the second call moves the arm
+     */
     public void MoveToRelicPlacePos()
     {
         MoveGlyphWristToState(GlyphWristState.RELIC_PLACE);
 
+        //move the arm if the wrist got to its position
         if(prevWristState == currentWristState)
         {
             MoveGlyphArmToState(GlyphArmState.RELIC_PLACE);
         }
     }
 
+    /**
+     * Moves the arm and wrist to the relic done position at the same time
+     */
     public void MoveToRelicDonePos()
     {
         MoveGlyphArmToState(GlyphArmState.RELIC_DONE);
         MoveGlyphWristToState(GlyphWristState.RELIC_DONE);
     }
 
+    /**
+     * Enables manual joystick control of the main arm by calling ArmJoystickUpdate every time interval
+     * @param joystickValue current value of the joystick
+     */
     public void EnableArmJoystick(double joystickValue)
     {
         //calls ArmJoystickUpdate every JOYSTICK_UPDATE_MILLIS milliseconds
@@ -544,6 +551,11 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Controls the main arm using manual joystick input, single speed in two directions. Used for fine control of arm and as a fallback.
+     * Uses RUN_TO_POSITION; sets target position to an increment added to its current position
+     * @param joystickValue current value of the joystick
+     */
     public void ArmJoystickUpdate(double joystickValue)
     {
         //make sure that arm is not currently going to a set position
@@ -566,6 +578,10 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Enables manual joystick control of the wrist by calling WristJoystickUpdate every time interval
+     * @param joystickValue current value of the joystick
+     */
     public void EnableWristJoystick(double joystickValue)
     {
         //calls WristJoystickUpdate every JOYSTICK_UPDATE_MILLIS milliseconds
@@ -576,6 +592,11 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Controls the wrist using manual joystick input, single speed in two directions. Used for fine control of arm and as a fallback.
+     * Uses RUN_TO_POSITION; sets target position to an increment added to its current position
+     * @param joystickValue current value of the joystick
+     */
     public void WristJoystickUpdate(double joystickValue)
     {
         //make sure that wrist is not currently going to a set position
@@ -598,6 +619,11 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Turns on auto glyph place routine if the arm and wrist are not moving and in the correct positions.
+     * Only enables the routine, does not disable. It will stop when it is done.
+     * @param isButtonPressed is the enable button pressed
+     */
     public void setIsAutoGlyphPlace(boolean isButtonPressed)
     {
         if(isButtonPressed &&
@@ -612,7 +638,10 @@ public class RRBotGlyphArm
         }
     }
 
-    //automatically readjusts/flips wrist and places 2nd glyph
+    /**
+     * Runs the auto glyph place routine: automatically places 1st glpyh, readjusts robot and flips wrist, and places 2nd glyph
+     * autoGlyphPlaceState keeps track of the state of the routine. When the state is a certain value, a certain step will be executed and the state is incremented.
+     */
     public void AutoGlyphPlaceRoutine()
     {
         //make sure arm, wrist, and drive motors are not moving
@@ -656,6 +685,7 @@ public class RRBotGlyphArm
             //rest of steps when arm started in FRONT1
             if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT1)
             {
+                //step 5: move arm to FRONT2 position
                 if(autoGlyphPlaceState == 4)
                 {
                     MoveGlyphArmToState(GlyphArmState.FRONT2);
@@ -663,6 +693,7 @@ public class RRBotGlyphArm
                     return;
                 }
 
+                //step 6: drive backwards
                 if(autoGlyphPlaceState == 5)
                 {
                     drive.AutoMove(-AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_2_LOW);
@@ -670,6 +701,7 @@ public class RRBotGlyphArm
                     return;
                 }
 
+                //step 7: rotate wrist to front position
                 if(autoGlyphPlaceState == 6)
                 {
                     MoveGlyphWristToState(GlyphWristState.FRONT);
@@ -677,6 +709,7 @@ public class RRBotGlyphArm
                     return;
                 }
 
+                //step 8: drive forwards
                 if(autoGlyphPlaceState == 7)
                 {
                     drive.AutoMove(AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_3_LOW);
@@ -684,6 +717,7 @@ public class RRBotGlyphArm
                     return;
                 }
 
+                //step 9: set grabber 1 to release position
                 if(autoGlyphPlaceState == 8)
                 {
                     robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
@@ -691,6 +725,7 @@ public class RRBotGlyphArm
                     return;
                 }
 
+                //set isAutoGlyphPlace to false to stop this method from being called and reset the position
                 if(autoGlyphPlaceState == 9)
                 {
                     isAutoGlyphPlace = false;
@@ -769,83 +804,51 @@ public class RRBotGlyphArm
                     autoGlyphPlaceState = 0;
                 }
             }
-
-
-
-
-
-            /*if(autoGlyphPlaceState == 3)
-            {
-                if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT1)
-                {
-                    MoveGlyphArmToState(GlyphArmState.FRONT2);
-                }
-                else if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT2)
-                {
-                    MoveGlyphArmToState(GlyphArmState.FRONT3);
-                }
-                else if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT3)
-                {
-                    MoveGlyphArmToState(GlyphArmState.FRONT4);
-                }
-                autoGlyphPlaceState = 4;
-                return;
-            }
-
-            if(autoGlyphPlaceState == 4)
-            {
-                if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT1)
-                {
-                    drive.AutoMove(-AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_2);
-                }
-                else if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT2)
-                {
-
-                }
-                else if(autoGlyphPlaceArmInitState == GlyphArmState.FRONT3)
-                {
-                    drive.AutoMove(AUTO_GLYPH_PLACE_DRIVE_SPEED, AUTO_GLYPH_PLACE_DRIVE_TIME_2);
-                }
-                autoGlyphPlaceState = 5;
-                return;
-            }
-
-            if(autoGlyphPlaceState == 5)
-            {
-                MoveGlyphWristToState(GlyphWristState.FRONT);
-                autoGlyphPlaceState = 6;
-                return;
-            }
-
-            if(autoGlyphPlaceState == 6)
-            {
-                isAutoGlyphPlace = false;
-                autoGlyphPlaceState = 0;
-            }*/
         }
     }
 
     //accessor methods
-    
+
+    /**
+     * Get the front limit switch state, negated
+     * @return the limit switch state
+     */
     public boolean getStartLimitState()
     {
         return !(robot.glyphStartLimit.getState());
     }
 
+    /**
+     * Get the back limit switch state, negated
+     * @return the limit switch state
+     */
     public boolean getEndLimitState()
     {
         return !(robot.glyphEndLimit.getState());
     }
 
+    /**
+     * Get the grabber 1 limit switch state, negated
+     * @return the limit switch state
+     */
     public boolean getGrabber1SwitchState()
     {
         return !(robot.glyphGrabberSwitch1.getState());
     }
+
+    /**
+     * Get the grabber 2 limit switch state, negated
+     * @return the limit switch state
+     */
     public boolean getGrabber2SwitchState()
     {
         return !(robot.glyphGrabberSwitch2.getState());
     }
 
+    /**
+     * Get the current grabber in front
+     * @return the number of the active grabber: 1 or 2, 0 for fallback
+     */
     public int getActiveGrabber()
     {
         //if wrist in in front position and arm is in a front position or wrist is in back position and arm is in a back position
@@ -884,6 +887,10 @@ public class RRBotGlyphArm
         return prevWristState;
     }
 
+    /**
+     * Get the current position of glyph grabber 1.
+     * @return position of grabber 1; a string containing "open," "close," or "release"
+     */
     public String getGrabber1Pos()
     {
         String returnString = "";
@@ -904,6 +911,10 @@ public class RRBotGlyphArm
         return returnString;
     }
 
+    /**
+     * Get the current position of glyph grabber 2.
+     * @return position of grabber 2; a string containing "open," "close," or "release"
+     */
     public String getGrabber2Pos()
     {
         String returnString = "";
@@ -934,16 +945,28 @@ public class RRBotGlyphArm
         return robot.glyphWristMotor.getCurrentPosition();
     }
 
+    /**
+     * Returns whether the main arm has homed
+     * @return hasHomed - if the arm has homed
+     */
     public boolean hasHomed()
     {
         return hasHomed;
     }
 
+    /**
+     * Returns whether the robot is in relic mode
+     * @return relicMode - if the robot is in relic mode
+     */
     public boolean isInRelicMode()
     {
         return relicMode;
     }
 
+    /**
+     * Returns whether the relic grabber is open
+     * @return false if it is closed; true if it is open
+     */
     public boolean isRelicGrabberOpen()
     {
         return Math.abs(robot.relicGrabberServo.getPosition() - RELIC_GRABBER_OPEN_POS) < 0.01;
@@ -954,6 +977,10 @@ public class RRBotGlyphArm
         return joystickValue;
     }
 
+    /**
+     * Set if the grabber has closed
+     * @param hasGrabberClosed has the grabber closed
+     */
     public void setHasGrabberClosed(boolean hasGrabberClosed)
     {
         this.hasGrabberClosed = hasGrabberClosed;

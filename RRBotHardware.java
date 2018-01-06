@@ -10,11 +10,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
- * Created by andrew on 9/10/17.
+ * Hardware class, defines the robot's hardware and initializes it
+ * @author Andrew Hollabaugh
+ * @since 2017-09-10
  */
-
-//Hardware class for Team 12601's Relic Recovery robot (2017-2018)
-//The purpose of this class is to define the hardware used by the robot so it can be referenced in the OpMode classes
 public class RRBotHardware
 {
     public DcMotor rearRightMotor = null;
@@ -47,8 +46,16 @@ public class RRBotHardware
     //public static final double RELIC_INIT_SERVO_START_POS = 0.2;
     //public static final double RELIC_GRABBER_SERVO_START_POS = 0.8;
 
+    /**
+     * Default constructor
+     */
     public RRBotHardware(){}
 
+    /**
+     * Defines the robot's hardware elements using hardwareMap.
+     * Initializes motors with runMode and direction, certain servos to init positions, and sets mode of digitalInputs
+     * @param ahwMap
+     */
     public void init(HardwareMap ahwMap)
     {
         hwMap = ahwMap;
@@ -91,6 +98,8 @@ public class RRBotHardware
         frontLeftMotor.setPower(0);
         glyphArmMotor1.setPower(0);
         glyphWristMotor.setPower(0);
+
+        //servo power module is plugged into motor port, turn it on
         servoPowerModule.setPower(1);
 
         //set drive motors to run using encoder guidance and glyphArm motors to stop and reset encoders

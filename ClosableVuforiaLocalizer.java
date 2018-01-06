@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaLocalizerImpl;
 
 /**
+ * Replacement for VuforiaLocalizer that can be closed.
+ *
  * Copyright (c) 2017 FTC Team 5484 Enderbots
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,14 +35,25 @@ import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaLocalizerImpl;
  *
  *     To close vuforia, simply call vuforia.close();
  */
-
-public class ClosableVuforiaLocalizer extends VuforiaLocalizerImpl {
+public class ClosableVuforiaLocalizer extends VuforiaLocalizerImpl
+{
     boolean closed = false;
-    public ClosableVuforiaLocalizer(Parameters parameters) {
+
+    /**
+     * Constructs a ClosableVuforiaLocalizer with parameters
+     * @param parameters parameters for construction
+     */
+    public ClosableVuforiaLocalizer(Parameters parameters)
+    {
         super(parameters);
     }
+
+    /**
+     * Closes the vuforia localizer
+     */
     @Override
-    public void close() {
+    public void close()
+    {
         if (!closed) super.close();
         closed = true;
     }

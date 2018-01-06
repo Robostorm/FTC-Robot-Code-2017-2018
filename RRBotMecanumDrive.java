@@ -4,25 +4,37 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 /**
- * Created by andrew on 10/8/17.
+ * Controls the robot's mecanum drive base
+ * @author Andrew Hollabaugh
+ * @since 2017-10-08
  */
-
 public class RRBotMecanumDrive
 {
     RRBotHardware robot;
 
     private ElapsedTime autoMoveTime = new ElapsedTime();
 
-    private final double driveDeadBand = 0.6;
     private boolean isAutoMove = false;
     private double autoTime;
 
-    //constructor gets hardware object from teleop class when it is constructed
+    /**
+     * Constructor gets hardware object from teleop class
+     * @param robot contains the hardware elements of the robot
+     */
     public RRBotMecanumDrive(RRBotHardware robot)
     {
         this.robot = robot;
     }
 
+    /**
+     * Calculates the velocity values for the drive motors in a mecanum configuration.
+     * @param leftX X position of left joystick
+     * @param leftY Y position of left joystick
+     * @param rightX X position of right joystick
+     * @param rightY Y position of right joystick
+     * @param doFunction whether a function should be used on the input values
+     * @return velocities - array of motor velocities
+     */
     public double[] calcVelocities(double leftX, double leftY, double rightX, double rightY, boolean doFunction)
     {
         double moveX = rightX;
@@ -63,8 +75,17 @@ public class RRBotMecanumDrive
         return velocities;
     }
 
+    /**
+     * Sets the motor power for manual drive. The parameters are sent to calcVelocities.
+     * @param leftX X position of left joystick
+     * @param leftY Y position of left joystick
+     * @param rightX X position of right joystick
+     * @param rightY Y position of right joystick
+     * @param doFunction whether a function should be used on the input values
+     */
     public void setMotorPower(double leftX, double leftY, double rightX, double rightY, boolean doFunction)
     {
+        //calculate the velocities
         double[] velocities = calcVelocities(leftX, leftY, rightX, rightY, doFunction);
 
         //set the motor power
@@ -74,6 +95,11 @@ public class RRBotMecanumDrive
         robot.rearRightMotor.setPower(velocities[3]);
     }
 
+    /**
+     * Function to be executed on the joystick input values. Not currently used
+     * @param input joystick value
+     * @return value - input value scaled by function
+     */
     public double inputFunction(double input)
     {
         double value = input;
@@ -108,6 +134,11 @@ public class RRBotMecanumDrive
         }*/
     }
 
+    /**
+     * Automatically moves the robot based on a set speed and time. Meant to be used in teleop.
+     * @param speed speed of movement
+     * @param time how long the movement should take
+     */
     public void AutoMove(double speed, double time)
     {
         isAutoMove = true;
@@ -121,6 +152,9 @@ public class RRBotMecanumDrive
         robot.frontLeftMotor.setPower(speed);
     }
 
+    /**
+     * Checks if the movement is done by comparing the time elapsed and the time the movement is set to take.
+     */
     public void AutoMoveEndCheck()
     {
         if(autoMoveTime.milliseconds() >= autoTime)
@@ -129,6 +163,10 @@ public class RRBotMecanumDrive
         }
     }
 
+    /**
+     * Returns whether an auto move is currently occuring
+     * @return isAutoMove
+     */
     public boolean getIsAutoMove()
     {
         return isAutoMove;
