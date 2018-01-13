@@ -118,7 +118,7 @@ public class RRBotDriveAuto
                 }
 
                 glyphArm.UpdateValues();
-                glyphArm.FlipWrist();
+                glyphArm.MoveGlyphWristToState(GlyphWristState.BACK);
 
                 opMode.sleep(500);
 
@@ -161,7 +161,7 @@ public class RRBotDriveAuto
                 TurnByGyro("left", TURN_45_1, GLYPH_PLACE_TURN_SPEED);
 
                 glyphArm.UpdateValues();
-                glyphArm.FlipWrist();
+                glyphArm.MoveGlyphWristToState(GlyphWristState.BACK);
 
                 opMode.sleep(500);
 
@@ -205,7 +205,7 @@ public class RRBotDriveAuto
                 }
 
                 glyphArm.UpdateValues();
-                glyphArm.FlipWrist();
+                glyphArm.MoveGlyphWristToState(GlyphWristState.BACK);
 
                 opMode.sleep(500);
 
@@ -241,7 +241,7 @@ public class RRBotDriveAuto
                 TurnByGyro("left", TURN_135_B, GLYPH_PLACE_TURN_SPEED);
 
                 glyphArm.UpdateValues();
-                glyphArm.FlipWrist();
+                glyphArm.MoveGlyphWristToState(GlyphWristState.BACK);
 
                 opMode.sleep(500);
 
@@ -300,7 +300,7 @@ public class RRBotDriveAuto
         EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, alignDistance, alignDistance, 2);
 
         glyphArm.UpdateValues();
-        glyphArm.FlipWrist();
+        glyphArm.MoveGlyphWristToState(GlyphWristState.BACK);
 
         glyphArm.UpdateValues();
         robot.grabber1Servo.setPosition(0.25);

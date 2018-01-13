@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -27,8 +28,11 @@ public class RRBotHardware
     public Servo jewelArmServo2 = null;
     public Servo grabber1Servo = null;
     public Servo grabber2Servo = null;
+    public Servo grabberRotateServo = null;
     public Servo relicInitServo = null;
     public Servo relicGrabberServo = null;
+    public CRServo grabber1Belt = null;
+    public CRServo grabber2Belt = null;
     public ColorSensor jewelArmColor = null;
     public DigitalChannel allianceColorSwitch = null;
     public DigitalChannel fieldPosSwitch = null;
@@ -72,8 +76,11 @@ public class RRBotHardware
         jewelArmServo2 = hwMap.servo.get("jewel_arm_2");
         grabber1Servo = hwMap.servo.get("grabber_1");
         grabber2Servo = hwMap.servo.get("grabber_2");
+        grabberRotateServo = hwMap.servo.get("grabber_rotate");
         relicInitServo = hwMap.servo.get("relic_init");
         relicGrabberServo = hwMap.servo.get("relic_grabber");
+        grabber1Belt = hwMap.crservo.get("grabber_1_belt");
+        grabber2Belt = hwMap.crservo.get("grabber_2_belt");
         jewelArmColor = hwMap.colorSensor.get("arm_color");
         allianceColorSwitch = hwMap.digitalChannel.get("alliance_color");
         fieldPosSwitch = hwMap.digitalChannel.get("field_pos");
@@ -125,8 +132,17 @@ public class RRBotHardware
         jewelArmServo2.setPosition(JEWEL_ARM_SERVO_2_START_POS);
         //grabber1Servo.setPosition(GRABBER_START_POS);
         //grabber2Servo.setPosition(GRABBER_START_POS);
+        grabberRotateServo.setPosition(RRBotGlyphArm.GRABBER_ROTATE_POS1);
         relicInitServo.setPosition(RRBotGlyphArm.RELIC_INIT_SERVO_GLYPHMODE_POS);
         relicGrabberServo.setPosition(RRBotGlyphArm.RELIC_GRABBER_CLOSE_POS);
+
+        //set continuous rotation servos to run forwards
+        grabber1Belt.setDirection(DcMotorSimple.Direction.FORWARD);
+        grabber2Belt.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        //set cr servos to zero power
+        grabber1Belt.setPower(0);
+        grabber1Belt.setPower(0);
 
         //set digital channels to input mode
         allianceColorSwitch.setMode(DigitalChannel.Mode.INPUT);

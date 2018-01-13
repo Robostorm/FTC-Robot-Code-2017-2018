@@ -80,7 +80,7 @@ public enum GlyphArmState
     /**
      * For placing the relic, fully extended
      */
-    RELIC_PLACE(4450, false), //was 4500
+    RELIC_PLACE(4460, false), //was 4450
 
     /**
      * For after relic has been placed

@@ -3,10 +3,16 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
+
+import java.util.Locale;
 
 /**
  * Created by andrew on 9/10/17.
@@ -18,29 +24,29 @@ import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 public class RRBotAutoGlyph extends LinearOpMode
 {
     RRBotHardware robot = new RRBotHardware();
-    //RRBotMecanumDrive drive = new RRBotMecanumDrive(robot);
-    //RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot, drive);
-    RRBotJewelArm jewelArm = new RRBotJewelArm(robot, this);
-    RRBotDriveAuto driveAuto = new RRBotDriveAuto(robot, this);
+    RRBotMecanumDrive drive = new RRBotMecanumDrive(robot);
+    RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot, drive);
+    //RRBotJewelArm jewelArm = new RRBotJewelArm(robot, this);
+    //RRBotDriveAuto driveAuto = new RRBotDriveAuto(robot, this);
     private ElapsedTime runtime = new ElapsedTime();
     
     //constructs vuforia object
     RRBotVuforiaClass vuforia = new RRBotVuforiaClass();
 
     //gyro variables
-    //private BNO055IMU imu;
-    //private Orientation angles;
+    private BNO055IMU imu;
+    private Orientation angles;
 
-    /*private final double JEWEL_ARM_SERVO_1_END_POS = 0;
+    private final double JEWEL_ARM_SERVO_1_END_POS = 0;
     private final double JEWEL_ARM_SERVO_2_MID_POS = 0.5;
     private final double JEWEL_ARM_SERVO_2_LEFT_POS = 0.15;
     private final double JEWEL_ARM_SERVO_2_RIGHT_POS = 0.9;
-    private final String JEWEL_ARM_COLOR_SENSOR_DIRECTION = "forwards";*/
+    private final String JEWEL_ARM_COLOR_SENSOR_DIRECTION = "forwards";
     private String allianceColor;
-    //private String ballColor = "unknown";
+    private String ballColor = "unknown";
     
     private int fieldPos = 0; //position 0 has a cryoptobox on one side, position 1 has cyroptoboxes on both sides
-    /*private final int TURN_90 = 83;
+    private final int TURN_90 = 83;
     private final double COUNTS_PER_MOTOR_REV = 560 ;    // Andymark 20:1 gearmotor
     private final double DRIVE_GEAR_REDUCTION = 2.0 ;     // This is < 1.0 if geared UP
     private final double WHEEL_DIAMETER_INCHES = 4.0 ;     // For figuring circumference
@@ -81,7 +87,7 @@ public class RRBotAutoGlyph extends LinearOpMode
     private final double GLYPH_PLACE_DISTANCE_B_1_2_CENTER = 0;
     private final double GLYPH_PLACE_DISTANCE_B_1_2_LEFT = 5.5;
     private final double GLYPH_PLACE_DISTANCE_B_1_3 = 6;
-    private final double GLYPH_PLACE_DISTANCE_B_1_4 = 3;*/
+    private final double GLYPH_PLACE_DISTANCE_B_1_4 = 3;
 
     @Override
     public void runOpMode()
@@ -91,13 +97,13 @@ public class RRBotAutoGlyph extends LinearOpMode
         vuforia.Init_Vuforia();
 
         //gyro initialization
-        /*BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.calibrationDataFile = "BNO055IMUCalibration.json";
         parameters.loggingEnabled = true;
         parameters.loggingTag = "IMU";
         imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(parameters);*/
+        imu.initialize(parameters);
 
         waitForStart();
 
@@ -115,11 +121,11 @@ public class RRBotAutoGlyph extends LinearOpMode
         telemetry.addData("Field Position", fieldPos);
         telemetry.update();
 
-        jewelArm.RunRoutine(allianceColor);
+        //jewelArm.RunRoutine(allianceColor);
 
-        /*
-        robot.grabber1Servo.setPosition(0.8);
-        robot.grabber2Servo.setPosition(0.8);
+
+        robot.grabber1Servo.setPosition(glyphArm.GRABBER_CLOSE_POS);
+        robot.grabber2Servo.setPosition(glyphArm.GRABBER_CLOSE_POS);
 
         robot.jewelArmServo2.setPosition(JEWEL_ARM_SERVO_2_MID_POS);
 
@@ -194,23 +200,23 @@ public class RRBotAutoGlyph extends LinearOpMode
 
         MoveJewelArm("up");
 
-        */
+
         //sleep(3000);
 
         sleep(250);
 
-        /*while(!glyphArm.hasHomed())
+        while(!glyphArm.hasHomed())
         {
             glyphArm.HomeArm();
-        }*/
+        }
 
         sleep(250);
 
         RelicRecoveryVuMark pictograph = ScanPictograph(500);
 
-        driveAuto.AutoPlaceGlyph(allianceColor, fieldPos, pictograph);
+        //driveAuto.AutoPlaceGlyph(allianceColor, fieldPos, pictograph);
 
-        /*if(allianceColor.equals("red"))
+        if(allianceColor.equals("red"))
         {
             if(fieldPos == 0)
             {
@@ -237,7 +243,7 @@ public class RRBotAutoGlyph extends LinearOpMode
                 }
 
                 glyphArm.UpdateValues();
-                glyphArm.FlipWrist();
+                glyphArm.MoveGlyphWristToState(GlyphWristState.BACK);
 
                 sleep(500);
 
@@ -251,7 +257,7 @@ public class RRBotAutoGlyph extends LinearOpMode
                 }
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.5);
+                robot.grabber1Servo.setPosition(glyphArm.GRABBER_RELEASE_POS);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_0_3, -GLYPH_PLACE_DISTANCE_0_3, 2);
 
@@ -280,14 +286,14 @@ public class RRBotAutoGlyph extends LinearOpMode
                 TurnByGyro("left", TURN_45_1, GLYPH_PLACE_TURN_SPEED);
 
                 glyphArm.UpdateValues();
-                glyphArm.FlipWrist();
+                glyphArm.MoveGlyphWristToState(GlyphWristState.BACK);
 
                 sleep(500);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_1_3, GLYPH_PLACE_DISTANCE_1_3, 5);
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.5);
+                robot.grabber1Servo.setPosition(glyphArm.GRABBER_RELEASE_POS);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_1_4, -GLYPH_PLACE_DISTANCE_1_4, 2);
 
@@ -324,14 +330,14 @@ public class RRBotAutoGlyph extends LinearOpMode
                 }
 
                 glyphArm.UpdateValues();
-                glyphArm.FlipWrist();
+                glyphArm.MoveGlyphWristToState(GlyphWristState.BACK);
 
                 sleep(500);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_B_0_2, GLYPH_PLACE_DISTANCE_B_0_2, 5);
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.5);
+                robot.grabber1Servo.setPosition(glyphArm.GRABBER_RELEASE_POS);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_B_0_3, -GLYPH_PLACE_DISTANCE_B_0_3, 2);
 
@@ -360,14 +366,14 @@ public class RRBotAutoGlyph extends LinearOpMode
                 TurnByGyro("left", TURN_135_B, GLYPH_PLACE_TURN_SPEED);
 
                 glyphArm.UpdateValues();
-                glyphArm.FlipWrist();
+                glyphArm.MoveGlyphWristToState(GlyphWristState.BACK);
 
                 sleep(500);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, GLYPH_PLACE_DISTANCE_B_1_3, GLYPH_PLACE_DISTANCE_B_1_3, 5);
 
                 glyphArm.UpdateValues();
-                robot.grabber1Servo.setPosition(0.5);
+                robot.grabber1Servo.setPosition(glyphArm.GRABBER_RELEASE_POS);
 
                 EncoderDriveTank(GLYPH_PLACE_DRIVE_SPEED, -GLYPH_PLACE_DISTANCE_B_1_4, -GLYPH_PLACE_DISTANCE_B_1_4, 2);
 
@@ -376,13 +382,13 @@ public class RRBotAutoGlyph extends LinearOpMode
                 glyphArm.UpdateValues();
                 glyphArm.MoveGlyphWristToState(GlyphWristState.START);
             }
-        }*/
+        }
 
         sleep(1000);
         robot.servoPowerModule.setPower(0);
     }
     
-    /*public void MoveJewelArm(String direction)
+    public void MoveJewelArm(String direction)
     {
         if(direction.equals("down"))
         {
@@ -426,9 +432,9 @@ public class RRBotAutoGlyph extends LinearOpMode
 
         telemetry.addData("knock ball", "behind");
         telemetry.update();
-    }*/
+    }
     
-    /*public void TurnByGyro(String direction, int angle, double speed)
+    public void TurnByGyro(String direction, int angle, double speed)
     {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         float startHeading = angles.firstAngle;
@@ -526,7 +532,7 @@ public class RRBotAutoGlyph extends LinearOpMode
             robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
-    }*/
+    }
 
     //depreciated
     /*public void EncoderDriveMecanum(double speedX, double speedY, double distance, double timeoutS)
@@ -607,7 +613,7 @@ public class RRBotAutoGlyph extends LinearOpMode
             robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }*/
-    /*
+
     public void EncoderDriveSideways(double speed, double distance, double timeoutS)
     {
         robot.rearLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -677,7 +683,7 @@ public class RRBotAutoGlyph extends LinearOpMode
         }
     }
 
-    public void EncoderDriveDiagonal(DcMotor motor1, DcMotor motor2, double speed, double distance, double timeoutS)
+    /*public void EncoderDriveDiagonal(DcMotor motor1, DcMotor motor2, double speed, double distance, double timeoutS)
     {
         motor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -753,7 +759,7 @@ public class RRBotAutoGlyph extends LinearOpMode
         return pictograph;
     }
 
-    /*public void TurnOffMotors()
+    public void TurnOffMotors()
     {
         robot.rearRightMotor.setPower(0);
         robot.rearLeftMotor.setPower(0);
@@ -770,5 +776,5 @@ public class RRBotAutoGlyph extends LinearOpMode
     String formatDegrees(double degrees)
     {
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
-    }*/
+    }
 }

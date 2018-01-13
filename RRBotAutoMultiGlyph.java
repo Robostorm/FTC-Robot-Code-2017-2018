@@ -4,6 +4,7 @@ import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.detectors.GlyphDetector;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 //Autonomous OpMode for Relic Recovery robot that runs the jewel arm and places the glyph in the correct column
 
 @Autonomous(name = "RRBotAutoMultiGlyph")
+@Disabled
 public class RRBotAutoMultiGlyph extends LinearOpMode
 {
     RRBotHardware robot = new RRBotHardware();

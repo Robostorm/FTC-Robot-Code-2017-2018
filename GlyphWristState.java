@@ -29,12 +29,12 @@ public enum GlyphWristState
     /**
      * Front position, horizontal
      */
-    FRONT(625),
+    FRONT(1582), //was 625
 
     /**
      * Back position, horizontal
      */
-    BACK(-625),
+    BACK(645), //was 1562 wawass -625
 
     /**
      * For picking up the relic farthest from the recovery zone

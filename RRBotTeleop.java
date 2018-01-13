@@ -31,6 +31,7 @@ public class RRBotTeleop extends OpMode
     private boolean prevRelicModeButton = false;
     private boolean prevRelicGrabberButton = false;
     private boolean prevAutoGrabberButton = false;
+    private boolean prevGrabberRotateButton = false;
 
     /**
      * Runs once when the init button is pressed. Sets things up for the rest of the program.
@@ -189,6 +190,17 @@ public class RRBotTeleop extends OpMode
             if(!(gamepad2.right_trigger > GAMEPAD_TRIGGER_THRESHOLD))
             {
                 prevWristButton = false;
+            }
+
+            //toggle servo rotation of one of the grabbers when left bumper is pressed, only detect rising edge of button press
+            if(gamepad2.left_bumper && !prevGrabberRotateButton)
+            {
+                prevGrabberRotateButton = true;
+                glyphArm.RotateGrabber();
+            }
+            if(!gamepad2.left_bumper)
+            {
+                prevGrabberRotateButton = false;
             }
 
             //open/close grabber when right bumper is pressed, only detects rising edge of button press

@@ -16,16 +16,21 @@ public class RRBotGlyphArm
     RRBotMecanumDrive drive;
 
     private ElapsedTime joystickTime = new ElapsedTime();
+    private ElapsedTime beltTime1 = new ElapsedTime();
+    private ElapsedTime beltTime2 = new ElapsedTime();
 
     //final variables for values that will not change
-    private final double GLYPH_WRIST_SPEED = 1;
     private final double GRABBER_OPEN_POS = 0.25; //was .8
-    private final double GRABBER_CLOSE_POS = 0.8; //was .75 waswas .15
-    private final double GRABBER_RELEASE_POS = 0.5; //was .4
+    protected static final double GRABBER_CLOSE_POS = 0.8; //was .75 waswas .15
+    protected static final double GRABBER_RELEASE_POS = 0.5; //was .4
+    protected static final double GRABBER_ROTATE_POS1 = 0;
+    private final double GRABBER_ROTATE_POS2 = 1;
+    private final double GRABBER_BELT_SPEED = -1;
     private final double GLYPH_ARM_MAX_SPEED = 1; //was .8
     private final double GLYPH_ARM_SLOW_SPEED = 0.2;
     private final double GLYPH_ARM_SLOW_DIST = 300;
     private final double HOME_ARM_SPEED = 0.2;
+    private final double GLYPH_WRIST_SPEED = 1;
     private final int ARM_POS_THRESHOLD = 80;
     private final int WRIST_POS_THRESHOLD = 50;
     protected static final double RELIC_INIT_SERVO_GLYPHMODE_POS = 0.2;
@@ -62,6 +67,9 @@ public class RRBotGlyphArm
     private int autoGlyphPlaceState = 0;
     private GlyphArmState autoGlyphPlaceArmInitState = null;
     private boolean hasGrabberClosed = false;
+    private boolean isGrabber1Belt = false;
+    private boolean isGrabber2Belt = false;
+    private double beltTimeout = 5;
 
     /**
      * Constructor gets hardware object and drive object from teleop class when it is constructed
@@ -98,6 +106,8 @@ public class RRBotGlyphArm
         {
             AutoGlyphPlaceRoutine();
         }
+
+        SetGrabberBelt();
 
         GrabberSignal();
     }
@@ -144,19 +154,43 @@ public class RRBotGlyphArm
      */
     public void FlipWrist()
     {
-        //close both grabbers so they hit other parts of the robot
-        robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
-        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+        if(getGrabberRotatePos() == 1)
+        {
+            //close both grabbers so they don't hit other parts of the robot
+            robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+            robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
 
-        //if wrist is in the start or back positions, move it to the front position
-        if(currentWristState == GlyphWristState.START || currentWristState == GlyphWristState.BACK)
-        {
-            MoveGlyphWristToState(GlyphWristState.FRONT);
+            //if wrist is in the start or back positions, move it to the front position
+            if (currentWristState == GlyphWristState.START || currentWristState == GlyphWristState.BACK)
+            {
+                MoveGlyphWristToState(GlyphWristState.FRONT);
+            }
+            //if wrist is in the front position, move it to the back position
+            else if (currentWristState == GlyphWristState.FRONT)
+            {
+                MoveGlyphWristToState(GlyphWristState.BACK);
+            }
         }
-        //if wrist is in the front position, move it to the back position
-        else if(currentWristState == GlyphWristState.FRONT)
+    }
+
+    public void RotateGrabber()
+    {
+        if(currentWristState == GlyphWristState.BACK)
         {
-            MoveGlyphWristToState(GlyphWristState.BACK);
+            //close both grabbers so they don't hit other parts of the robot
+            robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+            robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+
+            //MoveGlyphWristToState(GlyphWristState.BACK);
+
+            if (getGrabberRotatePos() == 1)
+            {
+                robot.grabberRotateServo.setPosition(GRABBER_ROTATE_POS2);
+            }
+            else if (getGrabberRotatePos() == 2)
+            {
+                robot.grabberRotateServo.setPosition(GRABBER_ROTATE_POS1);
+            }
         }
     }
 
@@ -172,18 +206,23 @@ public class RRBotGlyphArm
         //make sure the arm and wrist are not currently moving
         if(prevArmState == currentArmState && prevWristState == currentWristState)
         {
-            //if the grabber in front is grabber 1
-            if(getActiveGrabber() == 1)
+            if(getGrabberRotatePos() == 2)
             {
                 if(button.equals("open"))
                 {
                     if(getGrabber1Pos().equals("open"))
                     {
                         robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                        isGrabber1Belt = true;
+                        isGrabber2Belt = true;
                     }
                     else if(getGrabber1Pos().equals("close") || getGrabber1Pos().equals("release"))
                     {
                         robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
+                        robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
+                        isGrabber1Belt = false;
+                        isGrabber1Belt = false;
                     }
                 }
                 else if(button.equals("release"))
@@ -191,37 +230,80 @@ public class RRBotGlyphArm
                     if(getGrabber1Pos().equals("open") || getGrabber1Pos().equals("release"))
                     {
                         robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                        isGrabber1Belt = true;
+                        isGrabber1Belt = true;
                     }
                     else if(getGrabber1Pos().equals("close"))
                     {
                         robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
+                        robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
+                        isGrabber1Belt = false;
+                        isGrabber1Belt = false;
                     }
                 }
             }
-
-            //if the grabber in front is grabber 2
-            if(getActiveGrabber() == 2)
+            else
             {
-                if(button.equals("open"))
+                //if the grabber in front is grabber 1
+                if(getActiveGrabber() == 1)
                 {
-                    if(getGrabber2Pos().equals("open"))
+                    if(button.equals("open"))
                     {
-                        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                        if(getGrabber1Pos().equals("open"))
+                        {
+                            robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                            isGrabber1Belt = true;
+                        }
+                        else if(getGrabber1Pos().equals("close") || getGrabber1Pos().equals("release"))
+                        {
+                            robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
+                            isGrabber1Belt = false;
+                        }
                     }
-                    else if(getGrabber2Pos().equals("close") || getGrabber2Pos().equals("release"))
+                    else if(button.equals("release"))
                     {
-                        robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
+                        if(getGrabber1Pos().equals("open") || getGrabber1Pos().equals("release"))
+                        {
+                            robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+                            isGrabber1Belt = true;
+                        }
+                        else if(getGrabber1Pos().equals("close"))
+                        {
+                            robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
+                            isGrabber1Belt = false;
+                        }
                     }
                 }
-                else if(button.equals("release"))
+
+                //if the grabber in front is grabber 2
+                if(getActiveGrabber() == 2)
                 {
-                    if(getGrabber2Pos().equals("open") || getGrabber2Pos().equals("release"))
+                    if(button.equals("open"))
                     {
-                        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                        if(getGrabber2Pos().equals("open"))
+                        {
+                            robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                            isGrabber2Belt = true;
+                        }
+                        else if(getGrabber2Pos().equals("close") || getGrabber2Pos().equals("release"))
+                        {
+                            robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
+                            isGrabber2Belt = false;
+                        }
                     }
-                    else if(getGrabber2Pos().equals("close"))
+                    else if(button.equals("release"))
                     {
-                        robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
+                        if(getGrabber2Pos().equals("open") || getGrabber2Pos().equals("release"))
+                        {
+                            robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+                            isGrabber2Belt = true;
+                        }
+                        else if(getGrabber2Pos().equals("close"))
+                        {
+                            robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
+                            isGrabber2Belt = false;
+                        }
                     }
                 }
             }
@@ -261,6 +343,56 @@ public class RRBotGlyphArm
                 {
                     robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
                 }
+            }
+        }
+    }
+
+    public void SetGrabberBelt()
+    {
+        if(isGrabber1Belt)
+        {
+            //if the current power of grabber1Belt is 0
+            if(Math.abs(robot.grabber1Belt.getPower()) < 0.01)
+            {
+                robot.grabber1Belt.setPower(GRABBER_BELT_SPEED);
+                beltTime1.reset();
+            }
+
+            if(getGrabber1SwitchState() || beltTime1.seconds() > beltTimeout)
+            {
+                isGrabber1Belt = false;
+            }
+        }
+        else
+        {
+            //if the current power of grabber1Belt is 1
+            if(Math.abs(robot.grabber1Belt.getPower() - GRABBER_BELT_SPEED) < 0.01)
+            {
+                robot.grabber1Belt.setPower(0);
+            }
+        }
+
+
+        if(isGrabber2Belt)
+        {
+            //if the current power of grabber2Belt is 0
+            if(Math.abs(robot.grabber2Belt.getPower()) < 0.01)
+            {
+                robot.grabber2Belt.setPower(GRABBER_BELT_SPEED);
+                beltTime2.reset();
+            }
+
+            if(getGrabber2SwitchState() || beltTime2.seconds() > beltTimeout)
+            {
+                isGrabber2Belt = false;
+            }
+        }
+        else
+        {
+            //if the current power of grabber2Belt is 1
+            if(Math.abs(robot.grabber2Belt.getPower() - GRABBER_BELT_SPEED) < 0.01)
+            {
+                robot.grabber2Belt.setPower(0);
             }
         }
     }
@@ -424,13 +556,16 @@ public class RRBotGlyphArm
      */
     public void MoveToStartPos()
     {
-        //move grabber servos to close position
-        robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
-        robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+        if(getGrabberRotatePos() == 1)
+        {
+            //move grabber servos to close position
+            robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+            robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
 
-        //move arm and wrist to start positions
-        MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
-        MoveGlyphWristToState(GlyphWristState.START);
+            //move arm and wrist to start positions
+            MoveGlyphArmToState(GlyphArmState.FRONT_PICKUP);
+            MoveGlyphWristToState(GlyphWristState.START);
+        }
     }
 
     /**
@@ -933,6 +1068,23 @@ public class RRBotGlyphArm
             returnString = "release";
         }
         return returnString;
+    }
+
+    public int getGrabberRotatePos()
+    {
+        //grabberRotation is in a specific state if the difference between the current grabber position and the state poisition is very small; we cannot equate doubles because of rounding errors
+        if(Math.abs(robot.grabberRotateServo.getPosition() - GRABBER_ROTATE_POS1) < 0.01)
+        {
+            return 1;
+        }
+        else if(Math.abs(robot.grabberRotateServo.getPosition() - GRABBER_ROTATE_POS2) < 0.01)
+        {
+            return 2;
+        }
+        else
+        {
+            return 0;
+        }
     }
 
     public int getArmPos()
