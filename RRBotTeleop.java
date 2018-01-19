@@ -159,10 +159,10 @@ public class RRBotTeleop extends OpMode
             }
 
             //Run the auto glyph place routine when gamepad 1 right trigger is pressed
-            if(gamepad1.left_trigger > GAMEPAD_TRIGGER_THRESHOLD)
+            /*if(gamepad1.left_trigger > GAMEPAD_TRIGGER_THRESHOLD)
             {
                 glyphArm.setIsAutoGlyphPlace(true);
-            }
+            }*/
 
             /*else if(gamepad2.dpad_down)
             {
