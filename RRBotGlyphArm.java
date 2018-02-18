@@ -20,12 +20,12 @@ public class RRBotGlyphArm
     private ElapsedTime beltTime2 = new ElapsedTime();
 
     //final variables for values that will not change
-    private final double GRABBER_OPEN_POS = 0.25; //was .8
+    protected static final double GRABBER_OPEN_POS = 0.25; //was .8
     protected static final double GRABBER_CLOSE_POS = 0.8; //was .75 waswas .15
     protected static final double GRABBER_RELEASE_POS = 0.5; //was .4
     protected static final double GRABBER_ROTATE_POS1 = 0;
     private final double GRABBER_ROTATE_POS2 = 1;
-    private final double GRABBER_BELT_SPEED = -1;
+    protected static final double GRABBER_BELT_SPEED = -1;
     private final double GLYPH_ARM_MAX_SPEED = 1; //was .8
     private final double GLYPH_ARM_SLOW_SPEED = 0.2;
     private final double GLYPH_ARM_SLOW_DIST = 300;
@@ -173,21 +173,24 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Rotates one of the grabbers using servo to place both glyphs at once
+     */
     public void RotateGrabber()
     {
+        //make sure wrist is in back state (robot will break if in any other position)
         if(currentWristState == GlyphWristState.BACK)
         {
             //close both grabbers so they don't hit other parts of the robot
             robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
             robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
 
-            //MoveGlyphWristToState(GlyphWristState.BACK);
-
-            if (getGrabberRotatePos() == 1)
+            //toggle position of servo based on its current position
+            if(getGrabberRotatePos() == 1)
             {
                 robot.grabberRotateServo.setPosition(GRABBER_ROTATE_POS2);
             }
-            else if (getGrabberRotatePos() == 2)
+            else if(getGrabberRotatePos() == 2)
             {
                 robot.grabberRotateServo.setPosition(GRABBER_ROTATE_POS1);
             }
@@ -214,6 +217,8 @@ public class RRBotGlyphArm
                     {
                         robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
                         robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+
+                        //turn on both intake belts
                         isGrabber1Belt = true;
                         isGrabber2Belt = true;
                     }
@@ -221,6 +226,8 @@ public class RRBotGlyphArm
                     {
                         robot.grabber1Servo.setPosition(GRABBER_OPEN_POS);
                         robot.grabber2Servo.setPosition(GRABBER_OPEN_POS);
+
+                        //turn on both intake belts
                         isGrabber1Belt = false;
                         isGrabber1Belt = false;
                     }
@@ -231,6 +238,8 @@ public class RRBotGlyphArm
                     {
                         robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
                         robot.grabber2Servo.setPosition(GRABBER_CLOSE_POS);
+
+                        //turn on both intake belts
                         isGrabber1Belt = true;
                         isGrabber1Belt = true;
                     }
@@ -238,6 +247,8 @@ public class RRBotGlyphArm
                     {
                         robot.grabber1Servo.setPosition(GRABBER_RELEASE_POS);
                         robot.grabber2Servo.setPosition(GRABBER_RELEASE_POS);
+
+                        //turn on both intake belts
                         isGrabber1Belt = false;
                         isGrabber1Belt = false;
                     }
@@ -253,6 +264,8 @@ public class RRBotGlyphArm
                         if(getGrabber1Pos().equals("open"))
                         {
                             robot.grabber1Servo.setPosition(GRABBER_CLOSE_POS);
+
+                            //turn on intake belt
                             isGrabber1Belt = true;
                         }
                         else if(getGrabber1Pos().equals("close") || getGrabber1Pos().equals("release"))
@@ -311,6 +324,7 @@ public class RRBotGlyphArm
     }
 
     /**
+     * CURRENTLY UNUSED
      * Automatically closes the front grabber when limit switches are pressed, indicating the glyph is in position to be picked up.
      * Grabber closing is "latching," after it closes it will not open again automatically
      */
@@ -347,6 +361,9 @@ public class RRBotGlyphArm
         }
     }
 
+    /**
+     * Controls the state of the intake belts
+     */
     public void SetGrabberBelt()
     {
         if(isGrabber1Belt)
@@ -358,6 +375,7 @@ public class RRBotGlyphArm
                 beltTime1.reset();
             }
 
+            //turn off belt if limit switches are pressed or a timeout
             if(getGrabber1SwitchState() || beltTime1.seconds() > beltTimeout)
             {
                 isGrabber1Belt = false;
@@ -365,7 +383,7 @@ public class RRBotGlyphArm
         }
         else
         {
-            //if the current power of grabber1Belt is 1
+            //if the current power of grabber1Belt is GRABBER_BELT_SPEED, turn off belts
             if(Math.abs(robot.grabber1Belt.getPower() - GRABBER_BELT_SPEED) < 0.01)
             {
                 robot.grabber1Belt.setPower(0);
@@ -382,6 +400,7 @@ public class RRBotGlyphArm
                 beltTime2.reset();
             }
 
+            //turn off belt if limit switches are pressed or a timeout
             if(getGrabber2SwitchState() || beltTime2.seconds() > beltTimeout)
             {
                 isGrabber2Belt = false;
@@ -389,7 +408,7 @@ public class RRBotGlyphArm
         }
         else
         {
-            //if the current power of grabber2Belt is 1
+            //if the current power of grabber2Belt is GRABBER_BELT_SPEED, turn off belts
             if(Math.abs(robot.grabber2Belt.getPower() - GRABBER_BELT_SPEED) < 0.01)
             {
                 robot.grabber2Belt.setPower(0);
@@ -755,6 +774,7 @@ public class RRBotGlyphArm
     }
 
     /**
+     * CURRENTLY UNUSED
      * Turns on auto glyph place routine if the arm and wrist are not moving and in the correct positions.
      * Only enables the routine, does not disable. It will stop when it is done.
      * @param isButtonPressed is the enable button pressed
@@ -774,6 +794,7 @@ public class RRBotGlyphArm
     }
 
     /**
+     * CURRENTLY UNUSED
      * Runs the auto glyph place routine: automatically places 1st glpyh, readjusts robot and flips wrist, and places 2nd glyph
      * autoGlyphPlaceState keeps track of the state of the routine. When the state is a certain value, a certain step will be executed and the state is incremented.
      */

@@ -12,93 +12,77 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 
 /**
- * Created by andrew on 9/10/17.
+ * UNFINISHED Autonomous opmode that gets glyphs from the glyph pit and places them
+ * @author Andrew Hollabaugh
+ * @since 2018-2-8
  */
-
-//Autonomous OpMode for Relic Recovery robot that runs the jewel arm and places the glyph in the correct column
-
 @Autonomous(name = "RRBotAutoMultiGlyph")
 @Disabled
 public class RRBotAutoMultiGlyph extends LinearOpMode
 {
+    //construct other RRBot objects
     RRBotHardware robot = new RRBotHardware();
     RRBotJewelArm jewelArm = new RRBotJewelArm(robot, this);
-    RRBotDriveAuto driveAuto = new RRBotDriveAuto(robot, this);
+    RRBotMecanumDrive drive = new RRBotMecanumDrive(robot);
+    RRBotGlyphArm glyphArm = new RRBotGlyphArm(robot, drive);
+    RRBotDriveAuto driveAuto = new RRBotDriveAuto(robot, glyphArm, this);
+
     private ElapsedTime runtime = new ElapsedTime();
-    
+
     //constructs vuforia object
     RRBotVuforiaClass vuforia = new RRBotVuforiaClass();
 
     private String allianceColor;
-    private int fieldPos = 0; //position 0 has a cryoptobox on one side, position 1 has cyroptoboxes on both sides
-    private final double CAMERA_OFFSET = 5;
-
-    private GlyphDetector glyphDetector = null;
+    private int fieldPos = 0; //position 0: towards the audience, position 1: away from the audience
 
     @Override
     public void runOpMode()
     {
+        //initialize the hardware
         robot.init(hardwareMap);
 
+        //initialize vuforia
         vuforia.Init_Vuforia();
 
         waitForStart();
 
+        //set the alliance color depending on the state of a physical switch
         if(robot.allianceColorSwitch.getState())
             allianceColor = "red";
         else
             allianceColor = "blue";
 
+        //set the field position depending on the state of a physical switch
         if(robot.fieldPosSwitch.getState())
             fieldPos = 0;
         else
             fieldPos = 1;
 
+        //report the alliance color and field position to the driver station
         telemetry.addData("Alliance Color", allianceColor);
         telemetry.addData("Field Position", fieldPos);
         telemetry.update();
 
+        //run the jewel routine
         jewelArm.RunRoutine(allianceColor);
 
         sleep(250);
 
+        //scan the pictograph for 1/2 second
         RelicRecoveryVuMark pictograph = ScanPictograph(500);
-        vuforia.close();
+        //vuforia.close();
 
+        //place the first glyph based on pictograph
         driveAuto.AutoPlaceGlyph(allianceColor, fieldPos, pictograph);
 
-        glyphDetector = new GlyphDetector();
-        glyphDetector.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
-        glyphDetector.minScore = 1;
-        glyphDetector.downScaleFactor = 0.3;
-        glyphDetector.speed = GlyphDetector.GlyphDetectionSpeed.FAST;
-        glyphDetector.enable();
+        sleep(500);
 
-        /*while(opModeIsActive())
-        {
-            telemetry.addData("Glyph Pos X", glyphDetector.getChosenGlyphOffset());
-            telemetry.addData("Glyph Pos Offest", glyphDetector.getChosenGlyphPosition().toString());
-        }*/
+        //get the glyph
+        driveAuto.MultiGlyphGet(allianceColor, fieldPos, pictograph);
 
-        driveAuto.MultiGlyphInit(allianceColor, fieldPos, pictograph);
+        sleep(500);
 
-        sleep(1000);
-
-        double alignDistance = glyphDetector.getChosenGlyphOffset() - CAMERA_OFFSET;
-
-        telemetry.addData("isFoundRect", glyphDetector.isFoundRect());
-        telemetry.addData("alignDistance", alignDistance);
-
-        if(glyphDetector.isFoundRect() && glyphDetector.getChosenGlyphOffset() < 5)
-        {
-
-            driveAuto.MultiGlyphAlignPickup(alignDistance);
-        }
-        else
-        {
-            driveAuto.MultiGlyphAlignPickup(0);
-        }
-
+        //turn off servo power module (connected to a motor output port)
         robot.servoPowerModule.setPower(0);
     }
 

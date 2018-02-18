@@ -88,7 +88,7 @@ public class RRBotTeleop extends OpMode
         //if the robot is not driving automatically, set motor power to the manual drive algorithm based on gamepad inputs
         if(!drive.getIsAutoMove())
         {
-            drive.setMotorPower(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, -gamepad1.right_stick_y, false);
+            drive.setMotorPower(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, -gamepad1.right_stick_y, true);
         }
         else
         {

@@ -102,10 +102,11 @@ public class RRBotMecanumDrive
      */
     public double inputFunction(double input)
     {
-        double value = input;
+        //double value = input;
 
         //f(x) = x^3
-        value = value * value * value;
+        //value = value * value * value;
+        //return value;
 
         /*if(value > 0)
         {
@@ -120,10 +121,19 @@ public class RRBotMecanumDrive
             value = 0;
         }*/
 
-        return value;
+        /*if(input >= 0)
+        {
+            value = Math.sqrt(input);
+        }
+        else
+        {
+            value = -Math.sqrt(-input);
+        }
+        return value;*/
 
         //f(x) = x^2
-        /*double value = input * input;
+        double value = input * input;
+
         if(input < 0)
         {
             return value * -1;
@@ -131,7 +141,7 @@ public class RRBotMecanumDrive
         else
         {
             return value;
-        }*/
+        }
     }
 
     /**
